@@ -1,0 +1,434 @@
+{
+  "Footer": "Kalaasangama",
+  "Navbar": {
+    "Home": "Home",
+    "About": "About Us",
+    "Sponsors": "Sponsors",
+    "Achievements": "Achievements",
+    "Editions": "Editions",
+    "1st-edition": "1st Edition",
+    "2nd-edition": "2nd Edition"
+  },
+  "Timer": {
+    "Days": "Days",
+    "Hours": "Hours",
+    "Minutes": "Mins",
+    "Seconds": "Secs"
+  },
+  "About": {
+    "About": "About NMAMIT",
+    "About1": "Nitte Mahalinga Adyantaya Memorial Institute of Technology (NMAMIT), Nitte, established in 1986 and recognized by the All-India Council for Technical Education (AICTE), New Delhi,  is a part of the Nitte (Deemed to be University), Mangaluru, since June 2022",
+    "About2": "NMAMIT is placed in the Rank band 151-200 in the National Institutional Ranking Framework (NIRF) 2024 by the Ministry of Education, Government of India. NMAMIT, the off-campus centre of Nitte DU located at Nitte Village, has active collaborations with several international universities and organizations for faculty and student exchanges, research, internships and placements. The Institute offers UG engineering program in fourteen disciplines, PG M.Tech. program in seven disciplines & an MCA program. All the departments have qualified research guides for students interested in taking up research work leading to Ph.D. For more details, visit www.nitte.edu.in/nmamit",
+    "Members": "Our Members",
+    "Description": "Meet the people behind the scenes"
+  },
+  "Home": {
+    "Rulebook": "Rule Book",
+    "Prasanga": "Prasanga Padya",
+    "About": "About Yakshagavishti",
+    "AboutContent": "Immerse yourself in the fusion of tradition and innovation as our dedicated team invites select participants to be part of this unique Yakshagana competition. This one-of-a-kind competition seamlessly integrates centuries-old storytelling with a modern approach, all while preserving the essence of this beloved folk art. Join us on this transformative journey where ancient narratives and the rich heritage of Yakshagana meets a contemporary context of technology for better experience and transparency.",
+    "FAQ": "FAQ",
+    "q1": "Is Yakshagavishti open for all teams?&No, unfortunately this is for invited colleges only.",
+    "q2": "When will Yakshagavishti be conducted?&Yakshagavishti will be on Saturday, February 7th, 2026",
+    "q3": "Do we have to physically register again on the day of competition?&No; teams only need to verify their registrations.",
+    "q4_q": "Where and how can I access the rule book and Prasanga Padya list?",
+    "q4_ans": "It can be downloaded directly from the website &here&",
+    "q5": "Can anyone attend Yakshagavishti as an audience member?&Yes. Anyone can be an audience member; you&apos;re most welcome for the event!"
+  },
+  "Sponsors": {
+    "Heading": "SPONSORS",
+    "Description": "Big names backing an extraordinary event.",
+    "Title": "Official Title Partners",
+    "Associate": "Official Associate Partners",
+    "Executive": "Official Executive Partners",
+    "Visit": "Visit Website"
+  },
+  "Achievements": {
+    "Heading": "Achievements",
+    "Description": "Remarkable Feats in the Spotlight",
+    "Team": "Team Yakshasangama",
+    "Team1": "In just a year since our inception, Team Yakshasangama has emerged as a promising team of young artists across the off centre campus of Nitte DU, securing champion titles in eleven out of thirteen competitions and numerous individual prizes.",
+    "Team2": "Our passion for Yakshagana fuels our journey, and we are excited to continue this remarkable ascent in the world of this cherished art form.",
+    "Events": {
+      "0": {
+        "Title": "Yakshayana 2026 at Govinda Dasa College, Surathkal (March 21, 2026)",
+        "Team": "Winners of the competition.",
+        "Image": "/images/achievements/yakshayana-2026.jpg",
+        "Individual": {
+          "0": "",
+          "1": "",
+          "2": "",
+          "3": "",
+          "4": ""
+        }
+      },
+      "1": {
+        "Title": "AJ Institute of Management - Yakshakalotsava 2026 (February 25, 2026)",
+        "Team": "Overall winners of the competition.",
+        "Image": "/images/achievements/yakshakalotsava-2026.jpg",
+        "Individual": {
+          "0": "",
+          "1": "",
+          "2": "",
+          "3": "",
+          "4": ""
+        }
+      },
+      "2": {
+        "Title": "SDM COLLEGE YAKSHOTHSAVA 2025",
+        "Team": "First place in the overall category.",
+        "Image": "https://res.cloudinary.com/dstpdenfa/image/upload/v1769939430/Achievement6_urgsq0.jpg",
+        "Individual": {
+          "0": "Jithesh K Nayak - 1st place in Pundu vesha category, Samagra vayaktika & Tanda shresta among all the participating teams",
+          "1": "Upasana P - 1st in Stree vesha category",
+          "2": "K S Srikrishna Rao - 1st in Bannada vesha category",
+          "3": "Skanda shanbhouge - 1st in Hasya Vesha category",
+          "4": "Varun. U. A - 2nd in Kirita vesha category"
+        }
+      },
+      "3": {
+        "Title": "AJ Institute of Management - Yakshakalothsava 2025",
+        "Team": "First prize in the overall team category.",
+        "Image": "https://res.cloudinary.com/dstpdenfa/image/upload/v1769936624/Yakshagavishti/Achievement5_nqsiwu.jpg",
+        "Individual": {
+          "0": "Jithesh K Nayak - 1st pundu vesha category",
+          "1": "",
+          "2": "",
+          "3": "",
+          "4": ""
+        }
+      },
+      "4": {
+        "Title": "SDM College Yakshothsava 2025 (March 22-23, 2025)",
+        "Team": "First prize in the overall team category.",
+        "Image": "https://res.cloudinary.com/dstpdenfa/image/upload/v1769936618/Yakshagavishti/Achievement4_chphww.jpg",
+        "Individual": {
+          "0": "Jithesh K Nayak - Overall First Samagra Vayaktika",
+          "1": "Srivathsa Skanda Bhat - First Hasya-vesha",
+          "2": "Varun U Acharya - First Kireeta-vesha",
+          "3": "Sudiptha Manai - First Stree-vesha",
+          "4": ""
+        }
+      },
+      "5": {
+        "Title": "Bhramari Yaksha Jhenkara 2024 (April 4, 2024)",
+        "Team": "First prize in the overall team category.",
+        "Image": "https://res.cloudinary.com/dstpdenfa/image/upload/v1769936612/Yakshagavishti/Achievement3_jliokz.jpg",
+        "Individual": {
+          "0": "Adv. Prashanth Aithal - Overall Second Samagra Vayaktika, Best character in team",
+          "1": "Anwesh R Shetty - First Kireeta-vesha category",
+          "2": "Rajath Bola - First Hasya-vesha category",
+          "3": "Srikrishna Rao K S - First Bannada-vesha category",
+          "4": ""
+        }
+      },
+      "6": {
+        "Title": "AJ Institute of Management - Yakshakalothsava (March 6, 2024)",
+        "Team": "First prize in the overall team category.",
+        "Image": "https://res.cloudinary.com/dstpdenfa/image/upload/v1769936609/Yakshagavishti/Achievement1_ui4roa.jpg",
+        "Individual": {
+          "0": "",
+          "1": "",
+          "2": "",
+          "3": "",
+          "4": ""
+        }
+      },
+      "7": {
+        "Title": "SDM College Yakshothsava 2024 (Feb 23-25, 2024)",
+        "Team": "First prize in the overall team category.",
+        "Image": "https://res.cloudinary.com/dstpdenfa/image/upload/v1769936606/Yakshagavishti/Achievement2_heyei4.jpg",
+        "Individual": {
+          "0": "Anwesh R Shetty - Overall First Samagra Vayaktika",
+          "1": "Varun U Acharya - Overall Third Samagra Vayaktika",
+          "2": "TM Shravan Acharya - Best character in team",
+          "3": "",
+          "4": ""
+        }
+      },
+      "8": {
+        "Title": "Yaksha Pranava (October 8, 2023)",
+        "Team": "First runner-up position among the nine participating teams.",
+        "Image": "https://res.cloudinary.com/dstpdenfa/image/upload/v1769936603/Yakshagavishti/6_px5svt.jpg",
+        "Individual": {
+          "0": "Anwesh R Shetty - Best Kireeta Vesha (Role: Nibandhana)",
+          "1": "Varun Acharya - Best Pundu Vesha (Role: Satyavratha)",
+          "2": "Rajath Bola - Overall Second Samagra Vayaktika (Best Individual Artist, Role:Choodamani)",
+          "3": "",
+          "4": ""
+        }
+      },
+      "9": {
+        "Title": "Bhramari Yaksha Jhenkara 2023 (May 30, 2023)",
+        "Team": "First place in the overall category.",
+        "Image": "https://res.cloudinary.com/dstpdenfa/image/upload/v1769936599/Yakshagavishti/5_hqemfo.jpg",
+        "Individual": {
+          "0": "Pranav Moodithaya - First place in the individual Hasya category",
+          "1": "Anwesh R Shetty - Overall individual third place",
+          "2": "Varun Acharya - Overall individual first place",
+          "3": "",
+          "4": ""
+        }
+      },
+      "10": {
+        "Title": "Patla Sambhrama 2023 (May 27, 2023)",
+        "Team": "First-place in the overall team category among 22 participating teams.",
+        "Image": "https://res.cloudinary.com/dstpdenfa/image/upload/v1769936597/Yakshagavishti/4_mpbgkp.jpg",
+        "Individual": {
+          "0": "Varun Acharya - Second place, Pundu Vesha",
+          "1": "Anwesh R Shetty - First place, Raja Vesha",
+          "2": "Pranav Moodithaya - First place, Hasya",
+          "3": "T M Shravan - First place, Poshaka Patra",
+          "4": ""
+        }
+      },
+      "11": {
+        "Title": "AJ Institute of Management - Yakshakalothsava (April 20, 2023)",
+        "Team": "",
+        "Image": "https://res.cloudinary.com/dstpdenfa/image/upload/v1769936594/Yakshagavishti/3_eegmee.jpg",
+        "Individual": {
+          "0": "Anwesh R Shetty - First place in the Raja Vesha category",
+          "1": "",
+          "2": "",
+          "3": "",
+          "4": ""
+        }
+      },
+      "12": {
+        "Title": "Yakshayaana at Govinda Dasa College (April 8, 2023)",
+        "Team": "",
+        "Image": "https://res.cloudinary.com/dstpdenfa/image/upload/v1769936591/Yakshagavishti/2_ptz7mz.jpg",
+        "Individual": {
+          "0": "Pranav Moodithaya - First place, individual Hasya category",
+          "1": "",
+          "2": "",
+          "3": "",
+          "4": ""
+        }
+      },
+      "13": {
+        "Title": "SDM College Yakshothsava 2023 (March 11, 2023)",
+        "Team": "First prize in the overall team category.",
+        "Image": "https://res.cloudinary.com/dstpdenfa/image/upload/v1769936588/Yakshagavishti/1_bfecon.jpg",
+        "Individual": {
+          "0": "Varun Acharya - First place, individual category",
+          "1": "Saritha Rao - Consolation prize, individual category",
+          "2": "",
+          "3": "",
+          "4": ""
+        }
+      }
+    }
+  },
+  "1st-edition": {
+    "Description1": "The Yakshagana competition, titled 'Yakshagavishti', was organized by a technical college for the first time, featuring the episode 'Bheeshma Prathijne' and innovative measures such as online registration and paperless jury evaluations to ensure fairness. To maintain impartial judging, complete anonymity was enforced throughout the evaluation process.",
+    "Description2": "Five teams participated in the event: Alvas College (Moodubidire), SDM Law College (Mangalore), Dr. P. Dayananda Pai - P. Satisha Pai Government First Grade College (Mangalore), Govinda Dasa Degree College (Surathkal), and S.D.P.T. First Grade College (Kateel). This marked a significant milestone as the first full-fledged Yakshagana competition of its kind"
+  },
+  "2nd-edition": {
+    "Description1": "The inter-collegiate Yakshagana competition titled \"Yakshagavishti 2025\" was organized by NMAM Institute of Technology, Nitte, as a celebration of Yakshagana's rich cultural heritage. The event followed a well-structured programme with Chowki Pooje and inauguration. To ensure fairness, anonymity of teams and unbiased jury evaluation were strictly maintained throughout the competition.",
+    "Description2": "Five teams from various institutions participated in the event, including Govinda Dasa College (Surathkal), SDM Law College (Mangalore), Sri Madhva Vadiraja Institute of Technology and Management (Bantakal), SDPT First Grade College (Kateel), and St. Aloysius College (Autonomous), Mangalore. The event featured traditional Badagu Thittu and Tenku Thittu performances by the host team. Renowned music director Ravi Basrur graced the occasion and shared insights on his journey of bringing Yakshagana to cinema through his upcoming film Veera Chandrahasa. The event marked a significant milestone as a full-fledged Yakshagana competition hosted by a technical institution, setting a benchmark in integrating cultural traditions with academic platforms."
+  },
+  "Members": {
+    "0": {
+      "name": "Dr. Anantha Murthy",
+      "role": "Faculty Coordinator",
+      "url": "https://res.cloudinary.com/dstpdenfa/image/upload/v1769936626/Yakshagavishti/Mr._Anant_Murthi_toz2kd.jpg"
+    },
+    "1": {
+      "name": "Mr. Shyam Sundar",
+      "role": "Faculty Coordinator",
+      "url": "https://res.cloudinary.com/dstpdenfa/image/upload/v1769936628/Yakshagavishti/Mr._Shyam_Sundar_h7bfww.jpg"
+    },
+    "2": {
+      "name": "Shravan Udupa K",
+      "role": "Kalaasangama Founder",
+      "url": "https://res.cloudinary.com/dstpdenfa/image/upload/v1770037878/WhatsApp_Image_2026-02-02_at_6.11.22_PM_xfnrj6.jpg"
+    },
+    "3": {
+      "name": "Srikrishna Rao K S",
+      "role": "President",
+      "url": "https://res.cloudinary.com/dstpdenfa/image/upload/v1769936634/Yakshagavishti/K_S_Srikrishna_Rao_x96loz.jpg"
+    },
+    "4": {
+      "name": "B S Kishan",
+      "role": "Vice President",
+      "url": "https://res.cloudinary.com/dstpdenfa/image/upload/v1769936637/Yakshagavishti/Kishan_gmej8w.jpg"
+    },
+    "5": {
+      "name": "Shreya P V",
+      "role": "Secretary and Treasurer",
+      "url": "https://res.cloudinary.com/dstpdenfa/image/upload/v1769936640/Yakshagavishti/Shreya_P_V_ckqxh7.jpg"
+    },
+    "6": {
+      "name": "Keshav Nayak",
+      "role": "Joint Secretary",
+      "url": "https://res.cloudinary.com/dstpdenfa/image/upload/v1769936642/Yakshagavishti/Keshav_Nayak_wqdr19.jpg"
+    },
+    "7": {
+      "name": "Amrith Naik",
+      "role": "Folk Head",
+      "url": "https://res.cloudinary.com/dstpdenfa/image/upload/v1769936644/Yakshagavishti/Amrith_R_Naik_b9lobr.jpg"
+    },
+    "8": {
+      "name": "Spoorthi Bailoor",
+      "role": "Folk Head",
+      "url": "https://res.cloudinary.com/dstpdenfa/image/upload/v1769936647/Yakshagavishti/Spoorthi_Bailoor_exljcp.jpg"
+    },
+    "9": {
+      "name": "Shreya S Rao",
+      "role": "Music Head",
+      "url": "https://res.cloudinary.com/dstpdenfa/image/upload/v1769936649/Yakshagavishti/Shreya_S_Rao_ft5yk2.jpg"
+    },
+    "10": {
+      "name": "Shraddha Upadhyaya",
+      "role": "Music Head",
+      "url": "https://res.cloudinary.com/dstpdenfa/image/upload/v1769936652/Yakshagavishti/Shraddha_Upadhyaya_kgsehl.jpg"
+    },
+    "11": {
+      "name": "Prarthana Rao",
+      "role": "Dance Head",
+      "url": "https://res.cloudinary.com/dstpdenfa/image/upload/v1769936655/Yakshagavishti/PRARTHANA_RAO_j3knj1.png"
+    },
+    "12": {
+      "name": "Avanthi",
+      "role": "Dance Head",
+      "url": "https://res.cloudinary.com/dstpdenfa/image/upload/v1769936657/Yakshagavishti/Avanthi_ydlker.jpg"
+    },
+    "13": {
+      "name": "Sumith S Hegde",
+      "role": "Bhajan Head",
+      "url": "https://res.cloudinary.com/dstpdenfa/image/upload/v1769936660/Yakshagavishti/Sumith_S_Hegde_e4uhch.jpg"
+    },
+    "14": {
+      "name": "Harish Vishwanath Bhat",
+      "role": "Bhajan Head",
+      "url": "https://res.cloudinary.com/dstpdenfa/image/upload/v1769936663/Yakshagavishti/Harish_Vishwanath_bhat_zbz3mh.jpg"
+    },
+    "15": {
+      "name": "Vivek Naik",
+      "role": "Media Head",
+      "url": "https://res.cloudinary.com/dstpdenfa/image/upload/v1769936666/Yakshagavishti/Vivek_Naik_jh3jn7.jpg"
+    },
+    "16": {
+      "name": "Pratham P",
+      "role": "Media Head",
+      "url": "https://res.cloudinary.com/dstpdenfa/image/upload/v1769936669/Yakshagavishti/Pratham_P_f8wirw.jpg"
+    },
+    "17": {
+      "name": "Manish R Rao",
+      "role": "Core Member",
+      "url": "https://res.cloudinary.com/dstpdenfa/image/upload/v1769936671/Yakshagavishti/Manish_R_Rao_nru1zy.jpg"
+    },
+    "18": {
+      "name": "Varun U Acharya",
+      "role": "Core Member",
+      "url": "https://res.cloudinary.com/dstpdenfa/image/upload/v1769936674/Yakshagavishti/Varun_xukboi.jpg"
+    },
+    "19": {
+      "name": "Amrutha R Rao",
+      "role": "Core Member",
+      "url": "https://res.cloudinary.com/dstpdenfa/image/upload/v1769936677/Yakshagavishti/Amrutha_R_Rao_dokev0.jpg"
+    },
+    "20": {
+      "name": "Shreya S Prabhu",
+      "role": "Core Member",
+      "url": "https://res.cloudinary.com/dstpdenfa/image/upload/v1769936679/Yakshagavishti/Shreya_S_Prabhu_ibdzes.jpg"
+    },
+    "21": {
+      "name": "Shreya P V",
+      "role": "President",
+      "url": "https://res.cloudinary.com/dstpdenfa/image/upload/v1770033430/Shreya_P_V_c0mten.webp",
+      "rotation": "0"
+    },
+    "22": {
+      "name": "Amrutha R Rao",
+      "role": "Secretary",
+      "url": "https://res.cloudinary.com/dstpdenfa/image/upload/v1770033431/Amrutha_R_Rao_wjwwom.webp",
+      "rotation": "0"
+    },
+    "23": {
+      "name": "Chirag R Shetty",
+      "role": "Joint Secretary",
+      "url": "https://res.cloudinary.com/dstpdenfa/image/upload/v1770033430/Chirag_Shetty_dx7je1.webp",
+      "rotation": "0"
+    },
+    "24": {
+      "name": "Saksha Yatheesha Rai",
+      "role": "Treasurer",
+      "url": "https://res.cloudinary.com/dstpdenfa/image/upload/v1770033431/Saksha_Y_Rai_uhnix7.webp",
+      "rotation": "0"
+    },
+    "25": {
+      "name": "Varun U A",
+      "role": "Yakshagana Head",
+      "url": "https://res.cloudinary.com/dstpdenfa/image/upload/v1770033429/Varun_U_Acharya_pw4mfr.webp",
+      "rotation": "0"
+    },
+    "26": {
+      "name": "Niriksha Kotian",
+      "role": "Yakshagana Head",
+      "url": "https://res.cloudinary.com/dstpdenfa/image/upload/v1770033432/Niriksha_ayhsjr.webp",
+      "rotation": "0"
+    },
+    "27": {
+      "name": "Niharika A",
+      "role": "Music Head",
+      "url": "https://res.cloudinary.com/dstpdenfa/image/upload/v1770033429/Niharika_A_uvq2q7.webp",
+      "rotation": "0"
+    },
+    "28": {
+      "name": "Harish Vishwanath Bhat",
+      "role": "Bhajan Head",
+      "url": "https://res.cloudinary.com/dstpdenfa/image/upload/v1770033430/Harish_Vishwanath_Bhat_ui9hhh.webp",
+      "rotation": "0"
+    },
+    "29": {
+      "name": "Rashmitha R Nayak",
+      "role": "Classical Dance Head",
+      "url": "https://res.cloudinary.com/dstpdenfa/image/upload/v1770033430/Rashmitha_R_Nayak_ykaele.webp",
+      "rotation": "0"
+    },
+    "30": {
+      "name": "Avanthi",
+      "role": "Dance Head",
+      "url": "https://res.cloudinary.com/dstpdenfa/image/upload/v1770038029/Avanthi_darzo7.png",
+      "rotation": "0"
+    },
+    "31": {
+      "name": "Spoorthi Bailoor",
+      "role": "Folk Head",
+      "url": "https://res.cloudinary.com/dstpdenfa/image/upload/v1770033429/Spoorthi_Bailoor_pvvccm.webp",
+      "rotation": "0"
+    },
+    "32": {
+      "name": "Pratham P",
+      "role": "Media Head",
+      "url": "https://res.cloudinary.com/dstpdenfa/image/upload/v1770033429/Pratham_P_q0i2kl.webp",
+      "rotation": "0"
+    },
+    "33": {
+      "name": "Yash",
+      "role": "Media & SMC Head",
+      "url": "https://res.cloudinary.com/dstpdenfa/image/upload/v1770033429/Yash_Bellare_oc2jfv.webp",
+      "rotation": "0"
+    },
+    "34": {
+      "name": "Meghraj M",
+      "role": "Digital Head",
+      "url": "https://res.cloudinary.com/dstpdenfa/image/upload/v1770033429/Meghraj_M_n0vmlw.webp",
+      "rotation": "0"
+    },
+    "35": {
+      "name": "Pranathi Kalluraya",
+      "role": "Documentation Head",
+      "url": "https://res.cloudinary.com/dstpdenfa/image/upload/v1770033432/Pranathi_Kalluraya_rvveii.webp",
+      "rotation": "0"
+    },
+    "36": {
+      "name": "Manish R Rao",
+      "role": "Executive Member",
+      "url": "https://res.cloudinary.com/dstpdenfa/image/upload/v1770033430/Manish_R_Rao_gvaswg.webp",
+      "rotation": "0"
+    }
+  }
+}

@@ -1,0 +1,190 @@
+datasource db {
+  provider     = "postgresql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expires      DateTime
+
+  @@index([userId])
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  emailVerified Boolean?  @default(false)
+  image         String?
+  role          Role      @default(PARTICIPANT)
+  LeaderOf      Team?     @relation(name: "TeamLead")
+  accounts      Account[]
+  sessions      Session[]
+  Judge         Judge?
+}
+
+model College {
+  id        String   @id @default(cuid())
+  name      String
+  details   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  Team      Team?
+  password  String?
+}
+
+model TeamMembers {
+  id           String     @id @default(cuid())
+  name         String
+  idURL        String
+  contact      String?    @default("")
+  teamId       String
+  Team         Team       @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  characterId  String?
+  Character    Character? @relation(fields: [characterId], references: [id])
+  isIdVerified Boolean    @default(false)
+  isAttended   Boolean    @default(false)
+
+  @@unique([teamId, characterId])
+  @@index([teamId])
+  @@index([characterId])
+}
+
+model Team {
+  id              String            @id @default(cuid())
+  name            String            @unique
+  number          Int               @unique
+  isComplete      Boolean           @default(false)
+  attended        Boolean           @default(false)
+  college_id      String?           @unique
+  College         College?          @relation(fields: [college_id], references: [id])
+  leaderId        String?           @unique
+  Leader          User?             @relation(fields: [leaderId], references: [id], name: "TeamLead")
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  remark          String            @default("")
+  editRequested   Boolean           @default(false)
+  TeamMembers     TeamMembers[]
+  IndividualScore IndividualScore[]
+  Submitted       Submitted[]
+
+  @@index([college_id])
+}
+
+model Character {
+  id              String            @id @default(cuid())
+  character       PlayCharacters    @unique
+  PlayedBy        TeamMembers[]
+  IndividualScore IndividualScore[]
+}
+
+model Criteria {
+  id              String            @id @default(cuid())
+  name            Criterias         @unique
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  IndividualScore IndividualScore[]
+}
+
+model Judge {
+  userId          String            @id
+  User            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  IndividualScore IndividualScore[]
+  Submitted       Submitted[]
+
+  @@unique([userId])
+}
+
+model Submitted {
+  judgeId   String
+  Judge     Judge   @relation(fields: [judgeId], references: [userId], onDelete: Cascade)
+  teamID    String
+  Team      Team    @relation(fields: [teamID], references: [id], onDelete: Cascade)
+  submitted Boolean @default(false)
+
+  @@unique([judgeId, teamID])
+  @@index([judgeId])
+  @@index([teamID])
+}
+
+model IndividualScore {
+  id              String    @id @default(cuid())
+  criteria        Criteria  @relation(fields: [criteriaId], references: [id], onDelete: Cascade)
+  teamID          String
+  team            Team      @relation(fields: [teamID], references: [id], onDelete: Cascade)
+  criteriaId      String
+  characterId     String
+  characterPlayed Character @relation(fields: [characterId], references: [id])
+  score           Float
+  judgeId         String
+  judge           Judge     @relation(fields: [judgeId], references: [userId], onDelete: Cascade)
+
+  @@unique([teamID, criteriaId, characterId, judgeId])
+  @@index([teamID])
+  @@index([criteriaId])
+  @@index([characterId])
+  @@index([judgeId])
+}
+
+model VerificationToken {
+  id         String   @id @default(cuid()) // Add this
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+enum PlayCharacters {
+  MITRASAHA
+  MADAYANTHI
+  VANAPAALAKA
+  DHEERGHAAKSHA
+  DHOOMRAAKSHA
+  VASISHTA
+  MEGHAVARNA
+  DEVENDRA
+  NARADA
+}
+
+enum Role {
+  PARTICIPANT
+  ADMIN
+  JUDGE
+}
+
+enum Criterias {
+  CRITERIA_1
+  CRITERIA_2
+  CRITERIA_3
+  CRITERIA_4
+  CRITERIA_5
+}
