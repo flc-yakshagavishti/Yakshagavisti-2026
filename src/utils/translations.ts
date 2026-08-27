@@ -69,3 +69,23 @@ export const getMembers2025_26 = (t: (key: string) => string) => {
 
     return members;
 }
+
+export const getMembers2026_27 = (t: (key: string) => string) => {
+    const members = [];
+
+    for (let i=37; i<59; i++) {
+        const name = t(`${i}.name`);
+        const role = t(`${i}.role`);
+        const url = t(`${i}.url`);
+        const rotation = t(`${i}.rotation`);
+
+        members.push({ 
+            name, 
+            role, 
+            url,
+            ...(rotation && rotation !== `${i}.rotation` ? { rotation: Number(rotation) } : {})
+        });
+    }
+
+    return members;
+}
