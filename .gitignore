@@ -48,3 +48,4 @@ certificates
 
 # Database backups
 backups/
+graphify-out/
