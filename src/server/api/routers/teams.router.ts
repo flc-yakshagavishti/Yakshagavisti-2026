@@ -120,29 +120,34 @@ export const TeamRouter = createTRPCRouter({
 		)
 		.mutation(async ({ ctx, input }) => {
 			try {
-				const team = await ctx.db.team.update({
+				const existingTeam = await ctx.db.team.findUnique({
 					where: { college_id: input.college_id ?? undefined },
-					data: {
-						Leader: { connect: { id: ctx.session.user.id } }
-					}
-				})
+				});
 				
-				if (team?.isComplete) {
+				if (existingTeam?.isComplete) {
 					throw new kalasangamaError(
 						"Create Team Error",
 						"Team is already complete"
 					);
 				}
+
+				const team = await ctx.db.team.update({
+					where: { college_id: input.college_id ?? undefined },
+					data: {
+						Leader: { connect: { id: ctx.session.user.id } },
+						isComplete: true,
+					}
+				});
 				
 				await ctx.db.teamMembers.create({
 					data: {
 						teamId: team?.id ?? "",
-						characterId: input.leader_character ?? "",
+						characterId: input.leader_character ?? null,
 						idURL: input.leader_idUrl ?? "",
 						name: input.leader_name ?? "",
 						contact: input.leader_contact ?? "",
 					},
-				})
+				});
 				
 				return { message: "Team created successfully" };
 			} catch (error) {

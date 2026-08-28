@@ -59,13 +59,7 @@ export default function CollegeReg({
         description: data?.message,
       });
       setCollege(selectedCollege);
-      if (user?.LeaderOf?.editRequested && !user.LeaderOf.isComplete) {
-        return setFormToShow(4);
-      } else if (user?.LeaderOf) {
-        return setFormToShow(3);
-      } else {
-        return setFormToShow(2);
-      }
+      return setFormToShow(2);
     },
   });
   const form = useForm();
@@ -98,7 +92,7 @@ export default function CollegeReg({
     <div className="">
       <Dialog>
         <DialogTrigger>
-          <RegButton>{user?.LeaderOf ? "Edit Team" : "Create Team"}</RegButton>
+          <RegButton>Create Team</RegButton>
         </DialogTrigger>
         <DialogContent className="bg-[conic-gradient(at_top_left,_var(--tw-gradient-stops))] from-gray-950/50 via-slate-900 to-black text-white sm:max-w-[425px]">
           <DialogHeader>

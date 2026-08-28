@@ -16,16 +16,10 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "~/components/ui/dialog";
-import { Button } from "~/components/ui/button";
 import { Button as RegButton } from "~/components/Button";
 
 export default function ViewTeam() {
 	const teamData = api.team.getTeam.useQuery();
-	const editRequest = api.team.requestEditAccess.useMutation({
-			onSuccess() {
-			    void teamData.refetch()
-			},
-			});
 	return (
 		teamData.isSuccess && (
 			<Dialog>
@@ -44,13 +38,10 @@ export default function ViewTeam() {
 					<Table>
 						<TableHeader>
 							<TableRow>
-								<TableHead >
+								<TableHead>
 									Name
 								</TableHead>
-								<TableHead >
-									Character Played	
-								</TableHead>
-								<TableHead className="text-center ">ID</TableHead>
+								<TableHead className="text-center">ID</TableHead>
 								<TableHead>Verification Status</TableHead>
 							</TableRow>
 						</TableHeader>
@@ -59,9 +50,6 @@ export default function ViewTeam() {
 								<TableRow key={key}>
 									<TableCell className="font-semibold text-sm">
 										{member?.name}
-									</TableCell>
-									<TableCell className="font-semibold text-sm">
-										{member?.Character?.character}
 									</TableCell>
 									<TableCell>
 									<a href={member.idURL ?? ""} target="_blank">
@@ -83,11 +71,6 @@ export default function ViewTeam() {
 							))}
 						</TableBody>
 					</Table>
-					{!teamData?.data?.editRequested ? (
-						<Button className="cursor-pointer" onClick={()=>editRequest.mutate()}>Request Edit</Button>
-						) : (
-						<p className="text-center">We will review and update you soon for edits</p>
-					)}
 				</DialogContent>
 			</Dialog>
 		)
