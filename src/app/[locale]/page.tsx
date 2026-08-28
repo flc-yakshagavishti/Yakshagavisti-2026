@@ -104,9 +104,9 @@ export default function Home() {
 
                 <div className="absolute inset-0 top-1/4 flex scale-x-125 flex-col items-center justify-center font-rhomdon text-[22px] font-extralight text-[#873838] opacity-85">
                   <p>
-                    February 7<sup>th</sup>
+                    October 24<sup>th</sup>
                   </p>
-                  <p>Sadananda Auditorium</p>
+                  <p>Amphitheatere</p>
                 </div>
               </div>
             </motion.div>
@@ -263,24 +263,7 @@ export default function Home() {
                       </OutlineButton>
                     </a>
                   </Reveal>
-                  <Reveal classes="">
-                    <a
-                      onClick={() =>
-                        handleDownload(
-                          "/Saudaasa Charitre.pdf",
-                          "Saudaasa Charitre.pdf",
-                        )
-                      }
-                      className="w-fit"
-                    >
-                      <OutlineButton>
-                        <div className="flex items-center justify-center gap-2">
-                          <BiDownload />
-                          <span>{t("Prasanga")}</span>
-                        </div>
-                      </OutlineButton>
-                    </a>
-                  </Reveal>
+                  
                 </div>
               </div>
             </div>
