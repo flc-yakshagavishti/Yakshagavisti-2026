@@ -211,8 +211,19 @@ export const TeamRouter = createTRPCRouter({
 				const college = await getCollegeById(ctx.session.user.LeaderOf.college_id);
 				await Promise.all(
 					input.members.map(async (member) => {
-						await ctx.db.teamMembers.create({
-							data: {
+						await ctx.db.teamMembers.upsert({
+							where: {
+								teamId_characterId: {
+									teamId: college.Team?.id ?? "",
+									characterId: member.characterId,
+								},
+							},
+							update: {
+								name: member.name,
+								idURL: member.idURL,
+								isIdVerified: false,
+							},
+							create: {
 								name: member.name,
 								characterId: member.characterId,
 								idURL: member.idURL,

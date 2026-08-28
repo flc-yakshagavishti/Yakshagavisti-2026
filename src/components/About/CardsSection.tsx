@@ -3,26 +3,29 @@
 import { useTranslations } from "next-intl";
 import React, { useState } from "react";
 import Card from "~/components/About/Aboutcard";
-import { getFacultyAndFounder, getMembers, getMembers2025_26 } from "~/utils/translations";
+import { getFacultyAndFounder, getMembers, getMembers2025_26, getMembers2026_27 } from "~/utils/translations";
 
-type YearOption = "faculty" | "2025-26" | "2024-25";
+type YearOption = "faculty" | "2026-27" | "2025-26" | "2024-25";
 
 const AboutCardsSection: React.FC = () => {
   const t = useTranslations("Members");
   const facultyAndFounder = getFacultyAndFounder(t);
   const members2024_25 = getMembers(t);
   const members2025_26 = getMembers2025_26(t);
-  const [selectedYear, setSelectedYear] = useState<YearOption>("2025-26");
+  const members2026_27 = getMembers2026_27(t);
+  const [selectedYear, setSelectedYear] = useState<YearOption>("2026-27");
 
   const currentMembers = 
     selectedYear === "faculty" ? facultyAndFounder :
+    selectedYear === "2026-27" ? members2026_27 :
     selectedYear === "2025-26" ? members2025_26 : 
     members2024_25;
 
   const years = [
     { value: "faculty" as YearOption, label: "Faculty & Founder" },
-    { value: "2024-25" as YearOption, label: "2024-25" },
+    { value: "2026-27" as YearOption, label: "2026-27" },
     { value: "2025-26" as YearOption, label: "2025-26" },
+    { value: "2024-25" as YearOption, label: "2024-25" },
   ];
 
   return (

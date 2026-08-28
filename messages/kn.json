@@ -429,6 +429,138 @@
       "role": "ಕಾರ್ಯನಿರ್ವಾಹಕ ಸದಸ್ಯ",
       "url": "https://res.cloudinary.com/dstpdenfa/image/upload/v1770033430/Manish_R_Rao_gvaswg.webp",
       "rotation": "0"
+    },
+    "37": {
+      "name": "ಪ್ರಣತಿ ಕಲ್ಲೂರಾಯ",
+      "role": "ಅಧ್ಯಕ್ಷರು",
+      "url": "https://res.cloudinary.com/mqgak7n7/image/upload/v1787838020/President-_Pranathi_kalluraya.webp",
+      "rotation": "0"
+    },
+    "38": {
+      "name": "ವರುಣ್ ಯು ಆಚಾರ್ಯ",
+      "role": "ಹಿರಿಯ ಸಲಹೆಗಾರರು",
+      "url": "https://res.cloudinary.com/mqgak7n7/image/upload/v1787838020/Senior_Advisor-_Varun_U_A.webp",
+      "rotation": "0"
+    },
+    "39": {
+      "name": "ಯಶ್ ಬೆಳ್ಳಾರೆ",
+      "role": "ಎಸ್‌ಎಮ್‌ಸಿ ಮುಖ್ಯಸ್ಥರು",
+      "url": "https://res.cloudinary.com/dstpdenfa/image/upload/v1770033429/Yash_Bellare_oc2jfv.webp",
+      "rotation": "0"
+    },
+    "40": {
+      "name": "ಕವನ್ ಪಿ ಜಿ",
+      "role": "ಎಸ್‌ಎಮ್‌ಸಿ ಸಹ-ಮುಖ್ಯಸ್ಥರು",
+      "url": "https://res.cloudinary.com/mqgak7n7/image/upload/v1787838017/Kavan_P_g-_SMC_co-head.webp",
+      "rotation": "0"
+    },
+    "41": {
+      "name": "ಮೇಘರಾಜ್ ಎಮ್",
+      "role": "ಡಿಜಿಟಲ್ ಮುಖ್ಯಸ್ಥರು",
+      "url": "https://res.cloudinary.com/mqgak7n7/image/upload/v1787838019/Meghraj_Digital-Head.webp",
+      "rotation": "0"
+    },
+    "42": {
+      "name": "ಪ್ರಥಮ್ ಶೆಣೈ ಬಿ",
+      "role": "ಡಿಜಿಟಲ್ ಸಹ-ಮುಖ್ಯಸ್ಥರು",
+      "url": "https://res.cloudinary.com/mqgak7n7/image/upload/v1787838019/Pratham_Digital_Co-head.jpg.webp",
+      "rotation": "0"
+    },
+    "43": {
+      "name": "ನೇಥನ್ ಮ್ಯಾಥ್ಯೂ ಅನಿಲ್",
+      "role": "ಮಾಧ್ಯಮ ಮುಖ್ಯಸ್ಥರು",
+      "url": "https://res.cloudinary.com/mqgak7n7/image/upload/v1787838020/MediaHead_Naethen.webp",
+      "rotation": "0"
+    },
+    "44": {
+      "name": "ಸಿರಿ ಚಂದನಾ ನಾಯರಿ",
+      "role": "ಮಾಧ್ಯಮ ಸಹ-ಮುಖ್ಯಸ್ಥರು",
+      "url": "https://res.cloudinary.com/mqgak7n7/image/upload/v1787838016/Media_co-head_Siri_Nairy.webp",
+      "rotation": "0"
+    },
+    "45": {
+      "name": "ಅನ್ವಿತ್ ಸಿ ಭಾಗವತ್",
+      "role": "ಕಾರ್ಯದರ್ಶಿ",
+      "url": "https://res.cloudinary.com/mqgak7n7/image/upload/v1787838021/Secretary_Anvith_C_Bhagavath.webp",
+      "rotation": "0"
+    },
+    "46": {
+      "name": "ಶ್ರವ್ಯಾ ಎನ್ ಭಟ್",
+      "role": "ಜಂಟಿ ಕಾರ್ಯದರ್ಶಿ",
+      "url": "https://res.cloudinary.com/mqgak7n7/image/upload/v1787838017/JointSecretary_Shravya_N_Bhat.webp",
+      "rotation": "0"
+    },
+    "47": {
+      "name": "ಸಾಕ್ಷ ಯತೀಶ ರೈ",
+      "role": "ಯಕ್ಷಗಾನ ಸಲಹೆಗಾರರು",
+      "url": "https://res.cloudinary.com/mqgak7n7/image/upload/v1787838021/Yakshagana_advisor-_saksha.webp",
+      "rotation": "0"
+    },
+    "48": {
+      "name": "ಗಗನ್ ಟಿ. ಪೂಜಾರಿ",
+      "role": "ಯಕ್ಷಗಾನ ಮುಖ್ಯಸ್ಥರು",
+      "url": "https://res.cloudinary.com/mqgak7n7/image/upload/v1787838022/Yakshagana_head-_Gagan.webp",
+      "rotation": "0"
+    },
+    "49": {
+      "name": "ಉಪಾಸನಾ ಪಂಜರಿಕೆ",
+      "role": "ಯಕ್ಷಗಾನ ಸಹ-ಮುಖ್ಯಸ್ಥರು",
+      "url": "https://res.cloudinary.com/mqgak7n7/image/upload/v1787838015/Upasana_yakshagana_co-head.webp",
+      "rotation": "0"
+    },
+    "50": {
+      "name": "ಸೂರಜ್",
+      "role": "ಭಜನಾ ಮುಖ್ಯಸ್ಥರು",
+      "url": "https://res.cloudinary.com/mqgak7n7/image/upload/v1787838015/Bhajan_head-_Suraj.webp",
+      "rotation": "0"
+    },
+    "51": {
+      "name": "ರಶ್ಮಿತಾ ಆರ್ ನಾಯಕ್",
+      "role": "ಜಾನಪದ ಮುಖ್ಯಸ್ಥರು",
+      "url": "https://res.cloudinary.com/mqgak7n7/image/upload/v1787838015/Folk_Head.webp",
+      "rotation": "0"
+    },
+    "52": {
+      "name": "ನಿರಿಕ್ಷ ಕೋಟಿಯನ್",
+      "role": "ಜಾನಪದ ಸಹ-ಮುಖ್ಯಸ್ಥರು",
+      "url": "https://res.cloudinary.com/mqgak7n7/image/upload/v1787838016/Folk_Co-Head_-_Niriksha_Kotian.webp",
+      "rotation": "0"
+    },
+    "53": {
+      "name": "ನಿಹಾರಿಕಾ ಎ",
+      "role": "ಸಂಗೀತ ಮುಖ್ಯಸ್ಥರು",
+      "url": "https://res.cloudinary.com/mqgak7n7/image/upload/v1787838020/MusicHead_NiharikaA.webp",
+      "rotation": "0"
+    },
+    "54": {
+      "name": "ಗೌತಮಿ ಎಮ್",
+      "role": "ಸಂಗೀತ ಸಹ-ಮುಖ್ಯಸ್ಥರು",
+      "url": "https://res.cloudinary.com/mqgak7n7/image/upload/v1787838015/Gauthami__music_co-head.webp",
+      "rotation": "0"
+    },
+    "55": {
+      "name": "ಶ್ರದ್ಧಾ ಶೆಟ್",
+      "role": "ಇಎಮ್‌ಸಿ ಮುಖ್ಯಸ್ಥರು",
+      "url": "https://res.cloudinary.com/mqgak7n7/image/upload/v1787838016/Event_Management_Coordinator_Shraddha_Shet.webp",
+      "rotation": "0"
+    },
+    "56": {
+      "name": "ಸ್ಪೂರ್ತಿ ಬೈಲೂರ್",
+      "role": "ದಸ್ತಾವೇಜು ಮುಖ್ಯಸ್ಥರು",
+      "url": "https://res.cloudinary.com/mqgak7n7/image/upload/v1787838014/Spoorthi_documentation_head.webp",
+      "rotation": "0"
+    },
+    "57": {
+      "name": "ಅಕ್ಷರಾ ಶೆಟ್ಟಿ",
+      "role": "ದಸ್ತಾವೇಜು ಸಹ-ಮುಖ್ಯಸ್ಥರು",
+      "url": "https://res.cloudinary.com/mqgak7n7/image/upload/v1787838014/Documentation_Co-head__Akshara_Shetty_.webp",
+      "rotation": "0"
+    },
+    "58": {
+      "name": "ಚಿರಾಗ್ ಶೆಟ್ಟಿ",
+      "role": "ಕಾರ್ಯನಿರ್ವಾಹಕ ಸದಸ್ಯ",
+      "url": "https://res.cloudinary.com/mqgak7n7/image/upload/v1787838014/Chirag_Shetty-_Executive_member.webp",
+      "rotation": "0"
     }
   }
 }

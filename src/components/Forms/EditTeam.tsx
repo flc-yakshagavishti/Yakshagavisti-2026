@@ -33,6 +33,8 @@ import { useRouter } from "next/navigation";
 import AccordianForm from "~/components/Forms/AccordionForm";
 import z from "zod";
 import ViewBeforeSubmit from "~/components/ViewBeforeSubmit";
+import { ImSpinner9 } from "react-icons/im";
+import { IoCheckmarkCircle } from "react-icons/io5";
 
 type Members = {
   name: string;
@@ -175,41 +177,72 @@ const EditTeamForm = () => {
                 Submit
               </Button>
             </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle className="text-black">
-                  Are you absolutely sure?
-                </AlertDialogTitle>
-                <AlertDialogDescription>
-                  This action will register your team
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel className="text-black">
-                  Cancel
-                </AlertDialogCancel>                <ViewBeforeSubmit data={MembersArray} roles={roles.data?.map(character => ({ label: character.character, value: character.id })) ?? []}  />
-                <AlertDialogAction
-                  disabled={registerMembers.isPending}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    console.log(MembersArray);
-                    registerMembers.mutate({
-                      members: z
-                        .array(
-                          z.object({
-                            name: z.string(),
-                            characterId: z.string(),
-                            idURL: z.string(),
-                          }),
-                        )
-                        .parse(MembersArray),
-                      edit: true,
-                    });
-                  }}
-                >
-                  {registerMembers.isPending ? "Loading..." : "Continue"}
-                </AlertDialogAction>
-              </AlertDialogFooter>
+            <AlertDialogContent className="text-black">
+              {registerMembers.isSuccess ? (
+                <>
+                  <AlertDialogHeader className="flex flex-col items-center justify-center gap-2">
+                    <IoCheckmarkCircle className="h-16 w-16 text-green-500" />
+                    <AlertDialogTitle className="text-center text-xl text-black">
+                      Team Registered Successfully!
+                    </AlertDialogTitle>
+                    <AlertDialogDescription className="text-center text-gray-600">
+                      {registerMembers.data?.message ?? "Your team details have been updated successfully."}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter className="sm:justify-center">
+                    <Button
+                      onClick={() => {
+                        localStorage.removeItem("members");
+                        window.location.reload();
+                      }}
+                    >
+                      OK
+                    </Button>
+                  </AlertDialogFooter>
+                </>
+              ) : (
+                <>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="text-black">
+                      Are you absolutely sure?
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action will register your team
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel className="text-black">
+                      Cancel
+                    </AlertDialogCancel>
+                    <ViewBeforeSubmit data={MembersArray} roles={roles.data?.map(character => ({ label: character.character, value: character.id })) ?? []} />
+                    <AlertDialogAction
+                      disabled={registerMembers.isPending}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        console.log(MembersArray);
+                        registerMembers.mutate({
+                          members: z
+                            .array(
+                              z.object({
+                                name: z.string(),
+                                characterId: z.string(),
+                                idURL: z.string(),
+                              }),
+                            )
+                            .parse(MembersArray),
+                          edit: true,
+                        });
+                      }}
+                    >
+                      {registerMembers.isPending ? (
+                        <ImSpinner9 className="animate-spin" />
+                      ) : (
+                        "Continue"
+                      )}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </>
+              )}
             </AlertDialogContent>
           </AlertDialog>
         </div>
