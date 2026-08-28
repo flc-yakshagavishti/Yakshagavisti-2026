@@ -41,7 +41,8 @@ const Navbar = () => {
 
   const editionLinks = [
     { id: "1st-edition", label: t('1st-edition'), url: "/1st-edition" },
-    { id: "2nd-edition", label: t('2nd-edition'), url: "/2nd-edition" }
+    { id: "2nd-edition", label: t('2nd-edition'), url: "/2nd-edition" },
+    { id: "3rd-edition", label: t('3rd-edition'), url: "/3rd-edition" }
   ];
   
   const pathname = usePathname();

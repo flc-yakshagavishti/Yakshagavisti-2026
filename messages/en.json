@@ -7,7 +7,8 @@
     "Achievements": "Achievements",
     "Editions": "Editions",
     "1st-edition": "1st Edition",
-    "2nd-edition": "2nd Edition"
+    "2nd-edition": "2nd Edition",
+    "3rd-edition": "3rd Edition"
   },
   "Timer": {
     "Days": "Days",
@@ -227,6 +228,10 @@
   "2nd-edition": {
     "Description1": "The inter-collegiate Yakshagana competition titled \"Yakshagavishti 2025\" was organized by NMAM Institute of Technology, Nitte, as a celebration of Yakshagana's rich cultural heritage. The event followed a well-structured programme with Chowki Pooje and inauguration. To ensure fairness, anonymity of teams and unbiased jury evaluation were strictly maintained throughout the competition.",
     "Description2": "Five teams from various institutions participated in the event, including Govinda Dasa College (Surathkal), SDM Law College (Mangalore), Sri Madhva Vadiraja Institute of Technology and Management (Bantakal), SDPT First Grade College (Kateel), and St. Aloysius College (Autonomous), Mangalore. The event featured traditional Badagu Thittu and Tenku Thittu performances by the host team. Renowned music director Ravi Basrur graced the occasion and shared insights on his journey of bringing Yakshagana to cinema through his upcoming film Veera Chandrahasa. The event marked a significant milestone as a full-fledged Yakshagana competition hosted by a technical institution, setting a benchmark in integrating cultural traditions with academic platforms."
+  },
+  "3rd-edition": {
+    "Description1": "",
+    "Description2": ""
   },
   "Members": {
     "0": {
