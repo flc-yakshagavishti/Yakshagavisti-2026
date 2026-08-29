@@ -3,14 +3,24 @@ import { PlayCharacters, PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 const colleges = [
   {
-    name: "Sahyadri College of Engineering and Management",
-    teamName: " ಪಾಂಚಾಲ",
+    name: "St Aloysius College, Mangalore",
+    teamName: "ಪಾಂಚಾಲ",
   },
-  { name: "Canara College, Mangalore", teamName: " ಕುಂತಲ" },
-  { name: "St. Aloysius College, Mangalore", teamName: " ಗಾಂಧಾರ" },
   {
-    name: "Shri Madhwa Vadiraja Institute of Technology and Management, Bantakal",
+    name: "Vivekananda College of Arts, Science and Commerce (Autonomous)",
+    teamName: "ಕುಂತಲ",
+  },
+  {
+    name: "Sri Durgaparameshwari Temple First Grade College",
+    teamName: "ಗಾಂಧಾರ",
+  },
+  {
+    name: "Sahyadri College Of Engineering & Management (Autonomous)",
     teamName: " ಕೋಸಲ",
+  },
+  {
+    name: "Alva’s college",
+    teamName: "NOT_DECIDED",
   },
 ];
 
