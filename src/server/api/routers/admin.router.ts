@@ -542,4 +542,219 @@ export const adminRouter = createTRPCRouter({
 				});
 			}
 		}),
+
+	// --- College Management ---
+	getColleges: protectedAdminProcedure
+		.query(async ({ ctx }) => {
+			return await ctx.db.college.findMany({
+				include: {
+					Team: {
+						select: {
+							id: true,
+							name: true,
+						},
+					},
+				},
+				orderBy: {
+					name: "asc",
+				},
+			});
+		}),
+
+	addCollege: protectedAdminProcedure
+		.input(
+			z.object({
+				name: z.string().min(1, "College name is required"),
+				details: z.string().optional(),
+				password: z.string().optional(),
+			})
+		)
+		.mutation(async ({ ctx, input }) => {
+			return await ctx.db.college.create({
+				data: {
+					name: input.name,
+					details: input.details,
+					password: input.password ?? "hello",
+				},
+			});
+		}),
+
+	updateCollege: protectedAdminProcedure
+		.input(
+			z.object({
+				id: z.string(),
+				name: z.string().min(1, "College name is required"),
+				details: z.string().optional(),
+				password: z.string().optional(),
+			})
+		)
+		.mutation(async ({ ctx, input }) => {
+			return await ctx.db.college.update({
+				where: { id: input.id },
+				data: {
+					name: input.name,
+					details: input.details,
+					password: input.password,
+				},
+			});
+		}),
+
+	deleteCollege: protectedAdminProcedure
+		.input(z.object({ id: z.string() }))
+		.mutation(async ({ ctx, input }) => {
+			const college = await ctx.db.college.findUnique({
+				where: { id: input.id },
+				include: { Team: true },
+			});
+			if (college?.Team) {
+				throw new TRPCError({
+					code: "BAD_REQUEST",
+					message: "Cannot delete college associated with a team. Unlink or delete the team first.",
+				});
+			}
+			return await ctx.db.college.delete({
+				where: { id: input.id },
+			});
+		}),
+
+	// --- Team Editing ---
+	updateTeamName: protectedAdminProcedure
+		.input(
+			z.object({
+				teamId: z.string(),
+				name: z.string().min(1, "Team name cannot be empty"),
+			})
+		)
+		.mutation(async ({ ctx, input }) => {
+			const existing = await ctx.db.team.findFirst({
+				where: {
+					name: input.name,
+					NOT: { id: input.teamId },
+				},
+			});
+			if (existing) {
+				throw new TRPCError({
+					code: "BAD_REQUEST",
+					message: "A team with this name already exists",
+				});
+			}
+
+			return await ctx.db.team.update({
+				where: { id: input.teamId },
+				data: { name: input.name },
+			});
+		}),
+
+	// --- Admin Accounts Management ---
+	getAdmins: protectedAdminProcedure
+		.query(async ({ ctx }) => {
+			return await ctx.db.user.findMany({
+				where: { role: Role.ADMIN },
+				select: {
+					id: true,
+					name: true,
+					email: true,
+					image: true,
+					role: true,
+				},
+				orderBy: { email: "asc" },
+			});
+		}),
+
+	addAdmin: protectedAdminProcedure
+		.input(
+			z.object({
+				email: z.string().email("Invalid email address"),
+				name: z.string().optional(),
+			})
+		)
+		.mutation(async ({ ctx, input }) => {
+			const cleanEmail = input.email.trim().toLowerCase();
+			const existingUser = await ctx.db.user.findUnique({
+				where: { email: cleanEmail },
+			});
+
+			if (existingUser) {
+				return await ctx.db.user.update({
+					where: { id: existingUser.id },
+					data: { role: Role.ADMIN },
+				});
+			} else {
+				return await ctx.db.user.create({
+					data: {
+						email: cleanEmail,
+						name: input.name?.trim() || cleanEmail.split("@")[0] || "Admin",
+						role: Role.ADMIN,
+					},
+				});
+			}
+		}),
+
+	removeAdmin: protectedAdminProcedure
+		.input(z.object({ userId: z.string() }))
+		.mutation(async ({ ctx, input }) => {
+			if (input.userId === ctx.session.user.id) {
+				throw new TRPCError({
+					code: "BAD_REQUEST",
+					message: "You cannot remove your own admin privileges",
+				});
+			}
+
+			return await ctx.db.user.update({
+				where: { id: input.userId },
+				data: { role: Role.PARTICIPANT },
+			});
+		}),
+
+	// --- Judge Accounts Management ---
+	addJudge: protectedAdminProcedure
+		.input(
+			z.object({
+				email: z.string().email("Invalid email address"),
+				name: z.string().optional(),
+			})
+		)
+		.mutation(async ({ ctx, input }) => {
+			const cleanEmail = input.email.trim().toLowerCase();
+			let user = await ctx.db.user.findUnique({
+				where: { email: cleanEmail },
+			});
+
+			if (user) {
+				user = await ctx.db.user.update({
+					where: { id: user.id },
+					data: { role: Role.JUDGE },
+				});
+			} else {
+				user = await ctx.db.user.create({
+					data: {
+						email: cleanEmail,
+						name: input.name?.trim() || cleanEmail.split("@")[0] || "Judge",
+						role: Role.JUDGE,
+					},
+				});
+			}
+
+			await ctx.db.judge.upsert({
+				where: { userId: user.id },
+				create: { userId: user.id },
+				update: {},
+			});
+
+			return user;
+		}),
+
+	removeJudge: protectedAdminProcedure
+		.input(z.object({ userId: z.string() }))
+		.mutation(async ({ ctx, input }) => {
+			await ctx.db.judge.deleteMany({
+				where: { userId: input.userId },
+			});
+
+			return await ctx.db.user.update({
+				where: { id: input.userId },
+				data: { role: Role.PARTICIPANT },
+			});
+		}),
 });
+
