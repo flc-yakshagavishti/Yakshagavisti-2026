@@ -683,7 +683,7 @@ export const adminRouter = createTRPCRouter({
 				return await ctx.db.user.create({
 					data: {
 						email: cleanEmail,
-						name: input.name?.trim() || cleanEmail.split("@")[0] || "Admin",
+						name: input.name?.trim() ? input.name.trim() : (cleanEmail.split("@")[0] ?? "Admin"),
 						role: Role.ADMIN,
 					},
 				});
@@ -729,7 +729,7 @@ export const adminRouter = createTRPCRouter({
 				user = await ctx.db.user.create({
 					data: {
 						email: cleanEmail,
-						name: input.name?.trim() || cleanEmail.split("@")[0] || "Judge",
+						name: input.name?.trim() ? input.name.trim() : (cleanEmail.split("@")[0] ?? "Judge"),
 						role: Role.JUDGE,
 					},
 				});

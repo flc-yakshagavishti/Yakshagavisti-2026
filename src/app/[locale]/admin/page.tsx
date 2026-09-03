@@ -244,7 +244,9 @@ export default function Admin() {
     deleteCollegeMutation.mutate(
       { id: collegeId },
       {
-        onSuccess: () => refetchColleges().catch(console.error),
+        onSuccess: () => {
+          void refetchColleges();
+        },
         onError: (error) => alert(error.message),
       },
     );
@@ -253,13 +255,13 @@ export default function Admin() {
   function handleAddAdmin() {
     if (!adminEmail.trim()) return;
     addAdminMutation.mutate(
-      { email: adminEmail.trim(), name: adminName.trim() || undefined },
+      { email: adminEmail.trim(), name: adminName.trim() ? adminName.trim() : undefined },
       {
         onSuccess: () => {
           setAdminModalOpen(false);
           setAdminEmail("");
           setAdminName("");
-          refetchAdmins().catch(console.error);
+          void refetchAdmins();
         },
         onError: (error) => alert(error.message),
       },
@@ -274,7 +276,9 @@ export default function Admin() {
     removeAdminMutation.mutate(
       { userId },
       {
-        onSuccess: () => refetchAdmins().catch(console.error),
+        onSuccess: () => {
+          void refetchAdmins();
+        },
         onError: (error) => alert(error.message),
       },
     );
@@ -283,13 +287,13 @@ export default function Admin() {
   function handleAddJudge() {
     if (!judgeEmail.trim()) return;
     addJudgeMutation.mutate(
-      { email: judgeEmail.trim(), name: judgeName.trim() || undefined },
+      { email: judgeEmail.trim(), name: judgeName.trim() ? judgeName.trim() : undefined },
       {
         onSuccess: () => {
           setJudgeModalOpen(false);
           setJudgeEmail("");
           setJudgeName("");
-          refetchJudges().catch(console.error);
+          void refetchJudges();
         },
         onError: (error) => alert(error.message),
       },
@@ -302,7 +306,9 @@ export default function Admin() {
     removeJudgeMutation.mutate(
       { userId },
       {
-        onSuccess: () => refetchJudges().catch(console.error),
+        onSuccess: () => {
+          void refetchJudges();
+        },
         onError: (error) => alert(error.message),
       },
     );
@@ -344,7 +350,7 @@ export default function Admin() {
       doc.setFont("helvetica", "bold");
       const teamName = sanitizeText(team.name);
       doc.text(
-        `Team ${teamIndex + 1}: ${teamName || "Team " + (teamIndex + 1)}`,
+        `Team ${teamIndex + 1}: ${teamName ? teamName : "Team " + (teamIndex + 1)}`,
         14,
         yPosition,
       );
@@ -353,10 +359,10 @@ export default function Admin() {
       doc.setFontSize(11);
       doc.setFont("helvetica", "normal");
       const collegeName = sanitizeText(team.College?.name ?? "N/A");
-      doc.text(`College: ${collegeName || "N/A"}`, 14, yPosition);
+      doc.text(`College: ${collegeName ? collegeName : "N/A"}`, 14, yPosition);
       yPosition += 5;
       const leaderName = sanitizeText(team.Leader?.name ?? "N/A");
-      doc.text(`Leader: ${leaderName || "N/A"}`, 14, yPosition);
+      doc.text(`Leader: ${leaderName ? leaderName : "N/A"}`, 14, yPosition);
       yPosition += 5;
       const leaderContact = team.TeamMembers.find((m) => m.contact)?.contact;
       if (leaderContact) {
@@ -368,8 +374,8 @@ export default function Admin() {
 
       const memberData = team.TeamMembers.map((member, idx) => [
         (idx + 1).toString(),
-        sanitizeText(member.name) || "Member " + (idx + 1),
-        sanitizeText(member.Character?.character ?? "N/A") || "N/A",
+        sanitizeText(member.name) ? sanitizeText(member.name) : "Member " + (idx + 1),
+        sanitizeText(member.Character?.character ?? "N/A") ? sanitizeText(member.Character?.character ?? "N/A") : "N/A",
         member.contact ?? "N/A",
         member.isIdVerified ? "Yes" : "No",
         member.isAttended ? "Yes" : "No",
@@ -406,14 +412,20 @@ export default function Admin() {
   const filteredTeams = teams?.filter(
     (t) =>
       t.name.toLowerCase().includes(teamSearch.toLowerCase()) ||
-      t.College?.name?.toLowerCase().includes(teamSearch.toLowerCase()) ||
-      t.Leader?.name?.toLowerCase().includes(teamSearch.toLowerCase()),
+      (t.College?.name
+        ? t.College.name.toLowerCase().includes(teamSearch.toLowerCase())
+        : false) ||
+      (t.Leader?.name
+        ? t.Leader.name.toLowerCase().includes(teamSearch.toLowerCase())
+        : false),
   );
 
   const filteredColleges = colleges?.filter(
     (c) =>
       c.name.toLowerCase().includes(collegeSearch.toLowerCase()) ||
-      c.details?.toLowerCase().includes(collegeSearch.toLowerCase()),
+      (c.details
+        ? c.details.toLowerCase().includes(collegeSearch.toLowerCase())
+        : false),
   );
 
   const filteredAdmins = admins?.filter(
@@ -928,7 +940,7 @@ export default function Admin() {
                   Google OAuth Authentication Provisioning
                 </strong>
                 Enter the email address of the person you want to authorize as
-                an Admin. If they haven't logged in yet, a pre-registered
+                an Admin. If they haven&apos;t logged in yet, a pre-registered
                 account will be created. When they sign in with Google using
                 that email, they will automatically be granted full Admin
                 permissions.
@@ -1345,7 +1357,7 @@ export default function Admin() {
           <DialogHeader>
             <DialogTitle>Add Judge Account</DialogTitle>
             <DialogDescription className="text-white/50">
-              Grant Judge permissions to a jury member's email address.
+              Grant Judge permissions to a jury member&apos;s email address.
             </DialogDescription>
           </DialogHeader>
 
