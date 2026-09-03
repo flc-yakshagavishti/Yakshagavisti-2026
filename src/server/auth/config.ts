@@ -15,17 +15,19 @@ import { Role } from "@prisma/client";
  */
 declare module "next-auth" {
   interface Session {
-		user: {
-			id: string;
-			role: Role;
-			LeaderOf: {
-				id: string;
-				college_id: string;
-				isComplete: boolean;
-				editRequested: boolean;
-			} | undefined;
-		} & DefaultSession["user"];
-	}
+    user: {
+      id: string;
+      role: Role;
+      LeaderOf:
+        | {
+            id: string;
+            college_id: string;
+            isComplete: boolean;
+            editRequested: boolean;
+          }
+        | undefined;
+    } & DefaultSession["user"];
+  }
 
   // interface User {
   //   // ...other properties
@@ -41,9 +43,14 @@ declare module "next-auth" {
 export const authConfig = {
   providers: [
     GoogleProvider({
-      	clientId: env.GOOGLE_CLIENT_ID,
-		clientSecret: env.GOOGLE_CLIENT_SECRET,
-	}),
+      clientId: env.GOOGLE_CLIENT_ID,
+      clientSecret: env.GOOGLE_CLIENT_SECRET,
+
+      // Needed so users pre-created by email in the admin dashboard (admins/
+      // judges with no linked Account yet) can link their Google identity on
+      // first sign-in instead of hitting OAuthAccountNotLinked.
+      allowDangerousEmailAccountLinking: true,
+    }),
     /**
      * ...add more providers here.
      *
@@ -57,32 +64,35 @@ export const authConfig = {
   adapter: PrismaAdapter(db),
   callbacks: {
     session: async ({ session, user }) => {
-			if (session?.user) {
-				const data = await db.user.findUnique({
-					where: { id: user.id },
-					select: {
-						role: true,
-						LeaderOf: {
-							select: {
-								id: true,
-								college_id: true,
-								isComplete: true,
-								editRequested: true,
-							}
-						},
-					},
-				});
-				session.user.id = z.string().parse(user.id);
-				session.user.role = data?.role ?? Role.PARTICIPANT;
-				session.user.LeaderOf = data?.LeaderOf
-					? z.object({
-						id: z.string(),
-						college_id: z.string(),
-						isComplete: z.boolean(),
-						editRequested: z.boolean(),
-					}).parse(data.LeaderOf) : undefined;
-			}
-			return session;
-		},
+      if (session?.user) {
+        const data = await db.user.findUnique({
+          where: { id: user.id },
+          select: {
+            role: true,
+            LeaderOf: {
+              select: {
+                id: true,
+                college_id: true,
+                isComplete: true,
+                editRequested: true,
+              },
+            },
+          },
+        });
+        session.user.id = z.string().parse(user.id);
+        session.user.role = data?.role ?? Role.PARTICIPANT;
+        session.user.LeaderOf = data?.LeaderOf
+          ? z
+              .object({
+                id: z.string(),
+                college_id: z.string(),
+                isComplete: z.boolean(),
+                editRequested: z.boolean(),
+              })
+              .parse(data.LeaderOf)
+          : undefined;
+      }
+      return session;
+    },
   },
 } satisfies NextAuthConfig;
