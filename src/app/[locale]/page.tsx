@@ -69,7 +69,7 @@ export default function Home() {
     },
   );
   const isLeader = Boolean(
-    sessionData?.user?.LeaderOf || characters.data?.isLeader,
+    sessionData?.user?.LeaderOf ?? characters.data?.isLeader,
   );
   const handleDownload = (path: string, name: string) => {
     // fallback to window.open if the browser doesn't support the download attribute

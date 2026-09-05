@@ -1,4 +1,10 @@
-import React, { type Dispatch, type SetStateAction, useEffect, useState } from "react";
+import React, {
+  type Dispatch,
+  type SetStateAction,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { Button } from "~/components/ui/button";
 import { Button as RegButton } from "~/components/Button";
 import {
@@ -48,7 +54,10 @@ const MemberReg = ({
   const utils = api.useUtils();
   const characters = api.team.getCharacters.useQuery({});
   const membersList = api.team.getTeamForEdits.useQuery();
-  const characterList = characters.data?.characters ?? [];
+  const characterList = useMemo(
+    () => characters.data?.characters ?? [],
+    [characters.data?.characters],
+  );
   const [MembersArray, setMembersArray] = useState<Members[]>(
     (() => {
       const storedMembers = localStorage.getItem("members");
