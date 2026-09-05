@@ -152,11 +152,11 @@ export default function Home() {
             <Reveal classes="bottom-24">
               <div className="flex flex-col items-center gap-1 text-center landscape:short:gap-1">
                 {/* <div className="font-rhomdon font-bold text-5xl sm:text-7xl md:text-8xl 2xl:text-9xl landscape:short:text-7xl leading-snug sm:leading-snug md:leading-normal 2xl:leading-relaxed">Yakshagavishti</div> */}
-                {isRegistrationActive && !sessionData ? (
+                {isRegistrationActive && !sessionData?.user ? (
                   <div
                     className=""
                     onClick={
-                      sessionData
+                      sessionData?.user
                         ? () => void signOut()
                         : () => void signIn("google")
                     }
@@ -164,7 +164,7 @@ export default function Home() {
                     <Button>Register</Button>
                   </div>
                 ) : (
-                  sessionData?.user.role === Role.PARTICIPANT &&
+                  sessionData?.user?.role === Role.PARTICIPANT &&
                   (!isLeader ? (
                     <CreateTeam />
                   ) : (

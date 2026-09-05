@@ -220,7 +220,20 @@ export const TeamRouter = createTRPCRouter({
         TeamMembers: {
           include: { Character: true },
         },
-        Prasanga: true,
+        Leader: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        Prasanga: {
+          include: {
+            characters: {
+              orderBy: { character: "asc" },
+            },
+          },
+        },
         College: true,
       },
     });
@@ -238,7 +251,20 @@ export const TeamRouter = createTRPCRouter({
       },
       include: {
         TeamMembers: { include: { Character: true } },
-        Prasanga: { include: { characters: true } },
+        Leader: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        Prasanga: {
+          include: {
+            characters: {
+              orderBy: { character: "asc" },
+            },
+          },
+        },
       },
     });
     return team;

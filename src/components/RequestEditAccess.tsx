@@ -24,6 +24,7 @@ export default function RequestEditAccess() {
   return (
     <Button
       disabled={requestEditAccess.isPending}
+      className="bg-secondary-100 font-semibold text-black hover:bg-secondary-200"
       onClick={() => requestEditAccess.mutate()}
     >
       {requestEditAccess.isPending ? "Requesting..." : "Request Edit Access"}

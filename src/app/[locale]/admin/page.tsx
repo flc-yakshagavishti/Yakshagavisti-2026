@@ -60,6 +60,7 @@ interface jsPDFWithAutoTable extends jsPDF {
 
 export default function Admin() {
   const { data: sessionData } = useSession();
+  const utils = api.useUtils();
   const isAdmin = !sessionData?.user || sessionData?.user?.role !== Role.ADMIN;
 
   // --- Queries ---
@@ -80,7 +81,8 @@ export default function Admin() {
   );
   const { data: prasangas, refetch: refetchPrasangas } =
     api.admin.getPrasangas.useQuery(undefined, { enabled: !isAdmin });
-  const { data: competitionSettings } = api.admin.getCompetitionSettings.useQuery(undefined, { enabled: !isAdmin });
+  const { data: competitionSettings } =
+    api.admin.getCompetitionSettings.useQuery(undefined, { enabled: !isAdmin });
 
   // --- Mutations ---
   const verifyIdMutation = api.admin.verifyId.useMutation();
@@ -93,7 +95,14 @@ export default function Admin() {
     api.admin.createPrasangaCharacter.useMutation();
   const deleteCharacterMutation =
     api.admin.deletePrasangaCharacter.useMutation();
-  const setTeamFormationMutation = api.admin.setTeamFormation.useMutation();
+  const setTeamFormationMutation = api.admin.setTeamFormation.useMutation({
+    onSuccess: async () => {
+      await utils.admin.getCompetitionSettings.invalidate();
+    },
+    onError: (error) => {
+      alert(error.message);
+    },
+  });
 
   const addCollegeMutation = api.admin.addCollege.useMutation();
   const updateCollegeMutation = api.admin.updateCollege.useMutation();
@@ -517,7 +526,13 @@ export default function Admin() {
             <h2 className="font-semibold text-white">Allow Team Formation</h2>
             <p className="text-sm text-white/60">Allow team leads to enter all character details for their assigned prasanga.</p>
           </div>
-          <Switch checked={competitionSettings?.allowTeamFormation ?? false} onCheckedChange={(allowTeamFormation) => setTeamFormationMutation.mutate({ allowTeamFormation })} />
+          <Switch
+            checked={competitionSettings?.allowTeamFormation ?? false}
+            disabled={setTeamFormationMutation.isPending}
+            onCheckedChange={(allowTeamFormation) =>
+              setTeamFormationMutation.mutate({ allowTeamFormation })
+            }
+          />
         </div>
 
         {/* Stats Grid */}
@@ -759,8 +774,109 @@ export default function Admin() {
                     )}
                   </div>
 
+                  {/* Team Leader Section */}
+                  {(() => {
+                    const leaderMember = element.TeamMembers.find(
+                      (m) => m.characterId === null,
+                    );
+                    if (!leaderMember) return null;
+                    return (
+                      <div className="mb-4 rounded-xl border border-secondary-200/30 bg-secondary-200/5 p-3.5">
+                        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-2.5">
+                          <div className="flex items-center gap-2">
+                            <span className="rounded-md border border-secondary-100/40 bg-secondary-100/20 px-2 py-0.5 text-xs font-semibold text-secondary-100">
+                              Team Leader
+                            </span>
+                            <span className="text-xs text-white/50">
+                              Character: <span className="font-medium text-white/80">N/A</span>
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {leaderMember.idURL && (
+                              <button
+                                type="button"
+                                onClick={() => setSelectedImage(leaderMember.idURL)}
+                                className="inline-flex items-center gap-1.5 rounded-lg border border-secondary-200/20 bg-secondary-200/10 px-2.5 py-1 text-xs text-secondary-100 transition-all hover:text-secondary-200"
+                              >
+                                <ExternalLink className="h-3.5 w-3.5" /> View ID Card
+                              </button>
+                            )}
+
+                            {!leaderMember.isIdVerified ? (
+                              <Button
+                                size="sm"
+                                onClick={() => verifyId(leaderMember.id)}
+                                disabled={
+                                  verifyingId === leaderMember.id &&
+                                  verifyIdMutation.isPending
+                                }
+                                className="border border-[rgba(41,47,82,0.8)] bg-[rgba(41,47,82,0.7)] text-xs text-white hover:bg-[rgba(41,47,82,1)]"
+                              >
+                                {verifyingId === leaderMember.id &&
+                                verifyIdMutation.isPending ? (
+                                  <ImSpinner9 className="h-3 w-3 animate-spin" />
+                                ) : (
+                                  "Verify ID"
+                                )}
+                              </Button>
+                            ) : (
+                              <span className="rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-400">
+                                Verified ✓
+                              </span>
+                            )}
+
+                            {!leaderMember.isAttended ? (
+                              <Button
+                                size="sm"
+                                onClick={() =>
+                                  markAttendance(leaderMember.id, element.id)
+                                }
+                                disabled={
+                                  markingAttendance === leaderMember.id &&
+                                  markAttendanceMutation.isPending
+                                }
+                                className="bg-blue-600 text-xs text-white hover:bg-blue-500"
+                              >
+                                {markingAttendance === leaderMember.id &&
+                                markAttendanceMutation.isPending ? (
+                                  <ImSpinner9 className="h-3 w-3 animate-spin" />
+                                ) : (
+                                  "Mark Present"
+                                )}
+                              </Button>
+                            ) : (
+                              <span className="rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-400">
+                                Present ✓
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="mt-2.5 flex flex-wrap items-center gap-6 text-sm">
+                          <div>
+                            <span className="text-xs text-white/50">Leader Name: </span>
+                            <span className="font-semibold text-white/90">
+                              {leaderMember.name}
+                            </span>
+                          </div>
+                          {leaderMember.contact && (
+                            <div>
+                              <span className="text-xs text-white/50">Phone: </span>
+                              <span className="font-semibold text-white/90">
+                                {leaderMember.contact}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })()}
+
                   {/* Team Members Table */}
                   <div className="overflow-x-auto">
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-white/60">
+                      Prasanga Characters & Cast
+                    </p>
                     <Table className="w-full">
                       <TableHeader className="bg-[rgba(8,11,30,0.5)]">
                         <TableRow className="border-[rgba(41,47,82,0.5)] hover:bg-transparent">
@@ -782,94 +898,113 @@ export default function Admin() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {element.TeamMembers.map((member) => (
-                          <TableRow
-                            key={member.id}
-                            className="border-[rgba(41,47,82,0.4)] hover:bg-[rgba(41,47,82,0.2)]"
-                          >
-                            <TableCell className="font-medium text-white/90">
-                              {member.name}
-                              {member.contact && (
-                                <span className="mt-0.5 block text-xs text-white/40">
-                                  {member.contact}
-                                </span>
-                              )}
-                            </TableCell>
-
-                            <TableCell className="text-sm font-medium text-secondary-100">
-                              {member.Character?.character ?? "N/A"}
-                            </TableCell>
-
-                            <TableCell className="text-center">
-                              {member.idURL ? (
-                                <button
-                                  type="button"
-                                  onClick={() => setSelectedImage(member.idURL)}
-                                  className="inline-flex items-center gap-1.5 rounded-lg border border-secondary-200/20 bg-secondary-200/10 px-3 py-1.5 text-xs text-secondary-100 transition-all hover:text-secondary-200"
+                        {(() => {
+                          const characterMembers = element.TeamMembers.filter(
+                            (m) => m.characterId !== null,
+                          );
+                          if (characterMembers.length === 0) {
+                            return (
+                              <TableRow className="border-[rgba(41,47,82,0.4)]">
+                                <TableCell
+                                  colSpan={5}
+                                  className="py-6 text-center text-sm text-white/40"
                                 >
-                                  <ExternalLink className="h-3.5 w-3.5" /> View
-                                  ID Card
-                                </button>
-                              ) : (
-                                <span className="text-xs text-white/30">
-                                  No Image
-                                </span>
-                              )}
-                            </TableCell>
+                                  No character members registered yet.
+                                </TableCell>
+                              </TableRow>
+                            );
+                          }
+                          return characterMembers.map((member) => (
+                            <TableRow
+                              key={member.id}
+                              className="border-[rgba(41,47,82,0.4)] hover:bg-[rgba(41,47,82,0.2)]"
+                            >
+                              <TableCell className="font-medium text-white/90">
+                                {member.name}
+                                {member.contact && (
+                                  <span className="mt-0.5 block text-xs text-white/40">
+                                    {member.contact}
+                                  </span>
+                                )}
+                              </TableCell>
 
-                            <TableCell className="text-right">
-                              {!member.isIdVerified ? (
-                                <Button
-                                  size="sm"
-                                  onClick={() => verifyId(member.id)}
-                                  disabled={
-                                    verifyingId === member.id &&
-                                    verifyIdMutation.isPending
-                                  }
-                                  className="border border-[rgba(41,47,82,0.8)] bg-[rgba(41,47,82,0.7)] text-xs text-white hover:bg-[rgba(41,47,82,1)]"
-                                >
-                                  {verifyingId === member.id &&
-                                  verifyIdMutation.isPending ? (
-                                    <ImSpinner9 className="h-3 w-3 animate-spin" />
-                                  ) : (
-                                    "Verify ID"
-                                  )}
-                                </Button>
-                              ) : (
-                                <span className="rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-400">
-                                  Verified ✓
-                                </span>
-                              )}
-                            </TableCell>
+                              <TableCell className="text-sm font-medium text-secondary-100">
+                                {member.Character?.character ?? "N/A"}
+                              </TableCell>
 
-                            <TableCell className="text-right">
-                              {!member.isAttended ? (
-                                <Button
-                                  size="sm"
-                                  onClick={() =>
-                                    markAttendance(member.id, element.id)
-                                  }
-                                  disabled={
-                                    markingAttendance === member.id &&
-                                    markAttendanceMutation.isPending
-                                  }
-                                  className="bg-blue-600 text-xs text-white hover:bg-blue-500"
-                                >
-                                  {markingAttendance === member.id &&
-                                  markAttendanceMutation.isPending ? (
-                                    <ImSpinner9 className="h-3 w-3 animate-spin" />
-                                  ) : (
-                                    "Mark Present"
-                                  )}
-                                </Button>
-                              ) : (
-                                <span className="rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-400">
-                                  Present ✓
-                                </span>
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        ))}
+                              <TableCell className="text-center">
+                                {member.idURL ? (
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setSelectedImage(member.idURL)
+                                    }
+                                    className="inline-flex items-center gap-1.5 rounded-lg border border-secondary-200/20 bg-secondary-200/10 px-3 py-1.5 text-xs text-secondary-100 transition-all hover:text-secondary-200"
+                                  >
+                                    <ExternalLink className="h-3.5 w-3.5" /> View
+                                    ID Card
+                                  </button>
+                                ) : (
+                                  <span className="text-xs text-white/30">
+                                    No Image
+                                  </span>
+                                )}
+                              </TableCell>
+
+                              <TableCell className="text-right">
+                                {!member.isIdVerified ? (
+                                  <Button
+                                    size="sm"
+                                    onClick={() => verifyId(member.id)}
+                                    disabled={
+                                      verifyingId === member.id &&
+                                      verifyIdMutation.isPending
+                                    }
+                                    className="border border-[rgba(41,47,82,0.8)] bg-[rgba(41,47,82,0.7)] text-xs text-white hover:bg-[rgba(41,47,82,1)]"
+                                  >
+                                    {verifyingId === member.id &&
+                                    verifyIdMutation.isPending ? (
+                                      <ImSpinner9 className="h-3 w-3 animate-spin" />
+                                    ) : (
+                                      "Verify ID"
+                                    )}
+                                  </Button>
+                                ) : (
+                                  <span className="rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-400">
+                                    Verified ✓
+                                  </span>
+                                )}
+                              </TableCell>
+
+                              <TableCell className="text-right">
+                                {!member.isAttended ? (
+                                  <Button
+                                    size="sm"
+                                    onClick={() =>
+                                      markAttendance(member.id, element.id)
+                                    }
+                                    disabled={
+                                      markingAttendance === member.id &&
+                                      markAttendanceMutation.isPending
+                                    }
+                                    className="bg-blue-600 text-xs text-white hover:bg-blue-500"
+                                  >
+                                    {markingAttendance === member.id &&
+                                    markAttendanceMutation.isPending ? (
+                                      <ImSpinner9 className="h-3 w-3 animate-spin" />
+                                    ) : (
+                                      "Mark Present"
+                                    )}
+                                  </Button>
+                                ) : (
+                                  <span className="rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-400">
+                                    Present ✓
+                                  </span>
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          ));
+                        })()}
                       </TableBody>
                     </Table>
                   </div>

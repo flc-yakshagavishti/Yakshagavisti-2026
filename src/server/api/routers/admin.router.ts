@@ -36,6 +36,7 @@ export const adminRouter = createTRPCRouter({
                 name: true,
                 idURL: true,
                 contact: true,
+                characterId: true,
                 isIdVerified: true,
                 isAttended: true,
                 Character: {
@@ -640,7 +641,12 @@ export const adminRouter = createTRPCRouter({
           message: "Prasanga not found",
         });
       return ctx.db.$transaction(async (tx) => {
-        await tx.teamMembers.deleteMany({ where: { teamId: input.teamId } });
+        await tx.teamMembers.deleteMany({
+          where: {
+            teamId: input.teamId,
+            characterId: { not: null },
+          },
+        });
         await tx.individualScore.deleteMany({
           where: { teamID: input.teamId },
         });
