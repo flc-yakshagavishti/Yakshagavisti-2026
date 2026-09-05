@@ -78,12 +78,22 @@ export default function Admin() {
     undefined,
     { enabled: !isAdmin },
   );
+  const { data: prasangas, refetch: refetchPrasangas } =
+    api.admin.getPrasangas.useQuery(undefined, { enabled: !isAdmin });
+  const { data: competitionSettings } = api.admin.getCompetitionSettings.useQuery(undefined, { enabled: !isAdmin });
 
   // --- Mutations ---
   const verifyIdMutation = api.admin.verifyId.useMutation();
   const editTeamAccessMutation = api.admin.EditAccess.useMutation();
   const markAttendanceMutation = api.admin.markAttendance.useMutation();
   const updateTeamNameMutation = api.admin.updateTeamName.useMutation();
+  const assignPrasangaMutation = api.admin.assignPrasanga.useMutation();
+  const createPrasangaMutation = api.admin.createPrasanga.useMutation();
+  const createCharacterMutation =
+    api.admin.createPrasangaCharacter.useMutation();
+  const deleteCharacterMutation =
+    api.admin.deletePrasangaCharacter.useMutation();
+  const setTeamFormationMutation = api.admin.setTeamFormation.useMutation();
 
   const addCollegeMutation = api.admin.addCollege.useMutation();
   const updateCollegeMutation = api.admin.updateCollege.useMutation();
@@ -131,6 +141,10 @@ export default function Admin() {
   const [judgeModalOpen, setJudgeModalOpen] = useState(false);
   const [judgeEmail, setJudgeEmail] = useState("");
   const [judgeName, setJudgeName] = useState("");
+  const [newPrasangaName, setNewPrasangaName] = useState("");
+  const [newCharacterNames, setNewCharacterNames] = useState<
+    Record<string, string>
+  >({});
 
   if (isAdmin) return <NotFound />;
 
@@ -255,7 +269,10 @@ export default function Admin() {
   function handleAddAdmin() {
     if (!adminEmail.trim()) return;
     addAdminMutation.mutate(
-      { email: adminEmail.trim(), name: adminName.trim() ? adminName.trim() : undefined },
+      {
+        email: adminEmail.trim(),
+        name: adminName.trim() ? adminName.trim() : undefined,
+      },
       {
         onSuccess: () => {
           setAdminModalOpen(false);
@@ -287,7 +304,10 @@ export default function Admin() {
   function handleAddJudge() {
     if (!judgeEmail.trim()) return;
     addJudgeMutation.mutate(
-      { email: judgeEmail.trim(), name: judgeName.trim() ? judgeName.trim() : undefined },
+      {
+        email: judgeEmail.trim(),
+        name: judgeName.trim() ? judgeName.trim() : undefined,
+      },
       {
         onSuccess: () => {
           setJudgeModalOpen(false);
@@ -374,8 +394,12 @@ export default function Admin() {
 
       const memberData = team.TeamMembers.map((member, idx) => [
         (idx + 1).toString(),
-        sanitizeText(member.name) ? sanitizeText(member.name) : "Member " + (idx + 1),
-        sanitizeText(member.Character?.character ?? "N/A") ? sanitizeText(member.Character?.character ?? "N/A") : "N/A",
+        sanitizeText(member.name)
+          ? sanitizeText(member.name)
+          : "Member " + (idx + 1),
+        sanitizeText(member.Character?.character ?? "N/A")
+          ? sanitizeText(member.Character?.character ?? "N/A")
+          : "N/A",
         member.contact ?? "N/A",
         member.isIdVerified ? "Yes" : "No",
         member.isAttended ? "Yes" : "No",
@@ -488,6 +512,14 @@ export default function Admin() {
           </div>
         </div>
 
+        <div className="flex items-center justify-between rounded-2xl border border-secondary-200/20 bg-secondary-200/10 p-5">
+          <div>
+            <h2 className="font-semibold text-white">Allow Team Formation</h2>
+            <p className="text-sm text-white/60">Allow team leads to enter all character details for their assigned prasanga.</p>
+          </div>
+          <Switch checked={competitionSettings?.allowTeamFormation ?? false} onCheckedChange={(allowTeamFormation) => setTeamFormationMutation.mutate({ allowTeamFormation })} />
+        </div>
+
         {/* Stats Grid */}
         <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-5">
           <div className="rounded-xl border border-[rgba(41,47,82,0.5)] bg-[rgba(41,47,82,0.3)] p-5">
@@ -576,6 +608,13 @@ export default function Admin() {
               <span>Teams & Attendance</span>
             </TabsTrigger>
             <TabsTrigger
+              value="prasangas"
+              className="flex min-w-[140px] flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium text-white/60 transition-all hover:text-white data-[state=active]:bg-secondary-200 data-[state=active]:text-white"
+            >
+              <Users className="h-4 w-4 shrink-0" />
+              <span>Prasangas ({prasangas?.length ?? 0})</span>
+            </TabsTrigger>
+            <TabsTrigger
               value="colleges"
               className="flex min-w-[120px] flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium text-white/60 transition-all hover:text-white data-[state=active]:bg-secondary-200 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-orange-500/20"
             >
@@ -659,12 +698,47 @@ export default function Admin() {
                           <strong className="text-white/70">College:</strong>{" "}
                           {element.College?.name ?? "Unassigned"}
                         </span>
+                        <span>
+                          <strong className="text-white/70">Prasanga:</strong>{" "}
+                          {element.Prasanga?.name ?? "Not assigned"}
+                        </span>
                         {element.Leader?.name && (
                           <span>
                             <strong className="text-white/70">Leader:</strong>{" "}
                             {element.Leader.name}
                           </span>
                         )}
+                        <select
+                          value={element.Prasanga?.id ?? ""}
+                          onChange={(event) => {
+                            const prasangaId = event.target.value;
+                            if (
+                              !prasangaId ||
+                              !confirm(
+                                "Changing the prasanga will reset this team's character details, verification, attendance, and scores. Continue?",
+                              )
+                            )
+                              return;
+                            assignPrasangaMutation.mutate(
+                              { teamId: element.id, prasangaId },
+                              {
+                                onSuccess: () => {
+                                  void refetchTeams();
+                                  void refetchPrasangas();
+                                },
+                                onError: (error) => alert(error.message),
+                              },
+                            );
+                          }}
+                          className="rounded-lg border border-white/20 bg-slate-900 px-2 py-1 text-sm text-white"
+                        >
+                          <option value="">Assign prasanga</option>
+                          {prasangas?.map((prasanga) => (
+                            <option key={prasanga.id} value={prasanga.id}>
+                              {prasanga.name}
+                            </option>
+                          ))}
+                        </select>
                       </div>
                     </div>
 
@@ -807,6 +881,110 @@ export default function Admin() {
                   No teams matched your search.
                 </div>
               )}
+            </div>
+          </TabsContent>
+
+          {/* ==================== TAB: PRASANGAS ==================== */}
+          <TabsContent value="prasangas" className="space-y-6">
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Input
+                value={newPrasangaName}
+                onChange={(e) => setNewPrasangaName(e.target.value)}
+                placeholder="New prasanga name"
+                className="rounded-xl bg-white/10 text-white"
+              />
+              <Button
+                onClick={() => {
+                  if (!newPrasangaName.trim()) return;
+                  createPrasangaMutation.mutate(
+                    { name: newPrasangaName.trim() },
+                    {
+                      onSuccess: () => {
+                        setNewPrasangaName("");
+                        void refetchPrasangas();
+                      },
+                      onError: (e) => alert(e.message),
+                    },
+                  );
+                }}
+                className="bg-secondary-200"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Create Prasanga
+              </Button>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              {prasangas?.map((prasanga) => (
+                <div
+                  key={prasanga.id}
+                  className="rounded-2xl border border-[rgba(41,47,82,0.55)] bg-[rgba(41,47,82,0.25)] p-5"
+                >
+                  <h2 className="text-xl font-bold">{prasanga.name}</h2>
+                  <p className="mt-1 text-sm text-white/50">
+                    {prasanga._count.teams} assigned team(s)
+                  </p>
+                  <div className="mt-4 space-y-2">
+                    {prasanga.characters.map((character) => (
+                      <div
+                        key={character.id}
+                        className="flex items-center justify-between rounded-lg bg-black/20 px-3 py-2"
+                      >
+                        <span>{character.character}</span>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() =>
+                            deleteCharacterMutation.mutate(
+                              { id: character.id },
+                              {
+                                onSuccess: () => void refetchPrasangas(),
+                                onError: (e) => alert(e.message),
+                              },
+                            )
+                          }
+                        >
+                          <Trash2 className="h-4 w-4 text-red-400" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-4 flex gap-2">
+                    <Input
+                      value={newCharacterNames[prasanga.id] ?? ""}
+                      onChange={(e) =>
+                        setNewCharacterNames((current) => ({
+                          ...current,
+                          [prasanga.id]: e.target.value,
+                        }))
+                      }
+                      placeholder="Character name"
+                      className="bg-white/10 text-white"
+                    />
+                    <Button
+                      onClick={() => {
+                        const character =
+                          newCharacterNames[prasanga.id]?.trim();
+                        if (!character) return;
+                        createCharacterMutation.mutate(
+                          { prasangaId: prasanga.id, character },
+                          {
+                            onSuccess: () => {
+                              setNewCharacterNames((current) => ({
+                                ...current,
+                                [prasanga.id]: "",
+                              }));
+                              void refetchPrasangas();
+                            },
+                            onError: (e) => alert(e.message),
+                          },
+                        );
+                      }}
+                    >
+                      Add
+                    </Button>
+                  </div>
+                </div>
+              ))}
             </div>
           </TabsContent>
 

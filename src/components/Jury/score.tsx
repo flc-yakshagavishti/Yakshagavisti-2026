@@ -1,4 +1,4 @@
-import type { PlayCharacters } from "@prisma/client";
+type PlayCharacters = string;
 import React, { useEffect, useMemo, useState } from "react";
 import { api } from "~/trpc/react";
 import {
@@ -20,7 +20,7 @@ const characters: PlayCharacters[] = [
   "VASISHTA",
   "MEGHAVARNA",
   "DEVENDRA",
-  "NARADA"
+  "NARADA",
 ];
 
 function Score() {
@@ -65,9 +65,7 @@ function Score() {
         (mem) => mem.characterId === character,
       );
 
-      if (!names[character]) {
-        names[character] = {};
-      }
+      names[character] ??= {};
       // Use the matching member's name as needed
       if (matchingMember) {
         const matchingMemberName: string = matchingMember.name ?? "";
@@ -82,9 +80,7 @@ function Score() {
       }
 
       // If the characterID is not already in the team's scores, initialize it
-      if (!newTotalScores[character]) {
-        newTotalScores[character] = {};
-      }
+      newTotalScores[character] ??= {};
 
       // If the teamID is not already in the totalScores object, initialize it
       if (!newTotalScores[character][team]) {
@@ -102,7 +98,7 @@ function Score() {
       const sortedTeams = Object.fromEntries(
         Object.entries(teams).sort(([, a], [, b]) => b - a),
       );
-      newTotalScores[character as PlayCharacters] = sortedTeams;
+      newTotalScores[character] = sortedTeams;
     }
     // Update the state with the new total scores
     setTotalScores(newTotalScores);
@@ -127,13 +123,13 @@ function Score() {
     ];
     const col = array.join(",") + "\n";
     const row = characters.map((character) => {
-      const row = Object.keys(totalScores[character]).map((team, i) => {
+      const row = Object.keys(totalScores[character] ?? {}).map((team, i) => {
         const row = [
           character,
           i + 1,
           team,
           character,
-          totalScores[character][team],
+          totalScores[character]?.[team] ?? 0,
         ];
         return row.join(",");
       });
@@ -188,14 +184,16 @@ function Score() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {Object.keys(totalScores[character]).map((team: string, i) => (
-                <TableRow key={i}>
-                  <TableCell>{i + 1}</TableCell>
-                  <TableCell>{team}</TableCell>
-                  <TableCell>{names[character][team]}</TableCell>
-                  <TableCell>{totalScores[character][team]}</TableCell>
-                </TableRow>
-              ))}
+              {Object.keys(totalScores[character] ?? {}).map(
+                (team: string, i) => (
+                  <TableRow key={i}>
+                    <TableCell>{i + 1}</TableCell>
+                    <TableCell>{team}</TableCell>
+                    <TableCell>{names[character]?.[team] ?? ""}</TableCell>
+                    <TableCell>{totalScores[character]?.[team] ?? 0}</TableCell>
+                  </TableRow>
+                ),
+              )}
             </TableBody>
           </Table>
         </div>

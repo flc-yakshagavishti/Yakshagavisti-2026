@@ -47,6 +47,7 @@ const EditTeamForm = () => {
   console.log("Edit Team Form");
   const membersList = api.team.getTeamForEdits.useQuery();
   const roles = api.team.getCharacters.useQuery({ edit: true });
+  const characterList = roles.data?.characters ?? [];
   const [MembersArray, setMembersArray] = useState<Members[]>(
     (() => {
       const storedMembers = localStorage.getItem("members");
@@ -116,32 +117,34 @@ const EditTeamForm = () => {
         </DialogDescription>
         <div>
           <Accordion type="single" collapsible>
-            {roles.data?.map((role, index) => (
-              <AccordionItem key={index} value={`item-${index}`}>
-                <AccordionTrigger>{role.character}</AccordionTrigger>
-                <AccordionContent>
-                  <AccordianForm
-                    MembersArray={
-                      MembersArray.length > 7
-                        ? MembersArray.filter(
-                            (member) => member.characterId !== null,
-                          )
-                        : MembersArray
-                    }
-                    setMembersArray={setMembersArray}
-                    index={getIndex(role.id, index)}
-                    characterId={role.id}
-                  />
-                </AccordionContent>
-              </AccordionItem>
-            ))}
+            {roles.data?.assigned
+              ? characterList.map((role, index) => (
+                  <AccordionItem key={index} value={`item-${index}`}>
+                    <AccordionTrigger>{role.character}</AccordionTrigger>
+                    <AccordionContent>
+                      <AccordianForm
+                        MembersArray={
+                          MembersArray.length > 7
+                            ? MembersArray.filter(
+                                (member) => member.characterId !== null,
+                              )
+                            : MembersArray
+                        }
+                        setMembersArray={setMembersArray}
+                        index={getIndex(role.id, index)}
+                        characterId={role.id}
+                      />
+                    </AccordionContent>
+                  </AccordionItem>
+                ))
+              : null}
           </Accordion>
         </div>
         <div className="m-auto flex gap-2">
           <AlertDialog>
             <AlertDialogTrigger
               disabled={
-                (roles.data?.length ?? 0) <=
+                characterList.length <=
                 MembersArray.filter(
                   (member) => member !== undefined || member !== null,
                 ).length
@@ -152,7 +155,7 @@ const EditTeamForm = () => {
               <Button
                 size="sm"
                 disabled={
-                  (roles.data?.length ?? 0) <=
+                  characterList.length <=
                   MembersArray.filter(
                     (member) => member !== undefined || member !== null,
                   ).length
@@ -163,7 +166,7 @@ const EditTeamForm = () => {
                   if (
                     MembersArray.filter(
                       (member) => member !== undefined || member !== null,
-                    ).length < (roles.data?.length ?? 0)
+                    ).length < characterList.length
                   ) {
                     toast({
                       variant: "destructive",
@@ -186,7 +189,8 @@ const EditTeamForm = () => {
                       Team Registered Successfully!
                     </AlertDialogTitle>
                     <AlertDialogDescription className="text-center text-gray-600">
-                      {registerMembers.data?.message ?? "Your team details have been updated successfully."}
+                      {registerMembers.data?.message ??
+                        "Your team details have been updated successfully."}
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter className="sm:justify-center">
@@ -214,7 +218,15 @@ const EditTeamForm = () => {
                     <AlertDialogCancel className="text-black">
                       Cancel
                     </AlertDialogCancel>
-                    <ViewBeforeSubmit data={MembersArray} roles={roles.data?.map(character => ({ label: character.character, value: character.id })) ?? []} />
+                    <ViewBeforeSubmit
+                      data={MembersArray}
+                      roles={
+                        characterList.map((character) => ({
+                          label: character.character,
+                          value: character.id,
+                        })) ?? []
+                      }
+                    />
                     <AlertDialogAction
                       disabled={registerMembers.isPending}
                       onClick={(e) => {

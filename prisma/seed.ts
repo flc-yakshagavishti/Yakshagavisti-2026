@@ -1,4 +1,16 @@
-import { PlayCharacters, PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
+
+const defaultCharacters = [
+  "MITRASAHA",
+  "MADAYANTHI",
+  "VANAPAALAKA",
+  "DHEERGHAAKSHA",
+  "DHOOMRAAKSHA",
+  "VASISHTA",
+  "MEGHAVARNA",
+  "DEVENDRA",
+  "NARADA",
+];
 
 const prisma = new PrismaClient();
 const colleges = [
@@ -25,6 +37,12 @@ const colleges = [
 ];
 
 async function main() {
+  await prisma.competitionSettings.upsert({
+    where: { id: "default" },
+    update: {},
+    create: { id: "default", allowTeamFormation: false },
+  });
+
   for (const [index, college] of colleges.entries()) {
     const { name, teamName } = college;
 
@@ -42,13 +60,16 @@ async function main() {
     });
   }
 
-  for (const character of Object.values(PlayCharacters)) {
-    await prisma.character.create({
-      data: {
-        character: character,
+  await prisma.prasanga.upsert({
+    where: { name: "Default Prasanga" },
+    update: {},
+    create: {
+      name: "Default Prasanga",
+      characters: {
+        create: defaultCharacters.map((character) => ({ character })),
       },
-    });
-  }
+    },
+  });
 }
 
 main()

@@ -92,18 +92,35 @@ model Team {
   updatedAt       DateTime          @updatedAt
   remark          String            @default("")
   editRequested   Boolean           @default(false)
+  prasangaId      String?
+  Prasanga        Prasanga?         @relation(fields: [prasangaId], references: [id])
   TeamMembers     TeamMembers[]
   IndividualScore IndividualScore[]
   Submitted       Submitted[]
 
   @@index([college_id])
+  @@index([prasangaId])
+}
+
+model Prasanga {
+  id          String              @id @default(cuid())
+  name        String              @unique
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  characters  Character[]
+  teams       Team[]
 }
 
 model Character {
   id              String            @id @default(cuid())
-  character       PlayCharacters    @unique
+  character       String
+  prasangaId      String?
+  Prasanga        Prasanga?         @relation(fields: [prasangaId], references: [id], onDelete: Cascade)
   PlayedBy        TeamMembers[]
   IndividualScore IndividualScore[]
+
+  @@unique([prasangaId, character])
+  @@index([prasangaId])
 }
 
 model Criteria {
@@ -152,6 +169,13 @@ model IndividualScore {
   @@index([criteriaId])
   @@index([characterId])
   @@index([judgeId])
+}
+
+model CompetitionSettings {
+  id                 String   @id @default("default")
+  allowTeamFormation Boolean  @default(false)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 }
 
 model VerificationToken {

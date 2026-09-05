@@ -19,7 +19,7 @@ import { ArrowDown } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { type NextPage } from "next";
 import Remarks from "~/components/Jury/remarks";
-import { Role, type Criterias, type PlayCharacters } from "@prisma/client";
+import { Role, type Criterias } from "@prisma/client";
 import toast from "react-hot-toast";
 import { signOut, useSession } from "next-auth/react";
 import NotFound from "~/app/[locale]/not-found";
@@ -41,35 +41,12 @@ const Jury: NextPage = () => {
     "ಒಟ್ಟು ಪ್ರಸ್ತುತಿ (20)",
   ];
 
-  type ScoresState = Record<PlayCharacters, Record<Criterias, number>>;
+  type ScoresState = Record<string, Partial<Record<Criterias, number>>>;
 
   const [teamName, setTeamName] = useState<string>("Select a college");
   const [teamId, setTeamId] = useState<string>("");
   const [scored, setScored] = useState<boolean>(false);
   const [updating, setUpdating] = useState<boolean>(false);
-
-  const characters: PlayCharacters[] = [
-    "MITRASAHA",
-    "MADAYANTHI",
-    "VANAPAALAKA",
-    "DHEERGHAAKSHA",
-    "DHOOMRAAKSHA",
-    "VASISHTA",
-    "MEGHAVARNA",
-    "DEVENDRA",
-    "NARADA",
-  ];
-  const charactersDisplay: string[] = [
-    "ಮಿತ್ರಸಹ",
-    "ಮದಯಂತಿ",
-    "ವನಪಾಲಕ",
-    "ಧೀರ್ಘಾಕ್ಷ",
-    "ಧೂಮ್ರಾಕ್ಷ",
-    "ವಸಿಷ್ಠ",
-    "ಮೇಘವರ್ಣ",
-    "ದೇವೇಂದ್ರ",
-    "ನಾರದ",
-  ];
 
   const { data: sessionData } = useSession();
   const isJudge = !sessionData?.user || sessionData?.user?.role !== Role.JUDGE;
@@ -79,13 +56,21 @@ const Jury: NextPage = () => {
     enabled: !isJudge,
   });
 
+  const teamCharacters =
+    data?.find((team) => team.id === teamId)?.Prasanga?.characters ?? [];
+  const characters = teamCharacters.map((character) => character.id);
+  const charactersDisplay = teamCharacters.map(
+    (character) => character.character,
+  );
+
   // Initialize scores with all values set to 0
   const initialScores: ScoresState = {} as ScoresState;
 
   characters.forEach((character) => {
-    initialScores[character] = {} as ScoresState[PlayCharacters];
+    initialScores[character] = {};
 
     criteriaList.forEach((criteria) => {
+      initialScores[character] ??= {};
       initialScores[character][criteria] = 999;
     });
   });
@@ -105,7 +90,7 @@ const Jury: NextPage = () => {
   const [updatingField, setUpdatingField] = useState<string | null>(null);
 
   const handleScoreChange = (
-    character: PlayCharacters,
+    character: string,
     criteria: Criterias,
     value: number,
   ) => {
@@ -169,12 +154,13 @@ const Jury: NextPage = () => {
   };
 
   const totalScore = (character: string) => {
-    if (scores[character as PlayCharacters] != null) {
-      const keys = Object.keys(scores[character as PlayCharacters]);
+    const characterScores = scores[character] ?? {};
+    if (characterScores) {
+      const keys = Object.keys(characterScores);
       let sum = 0;
       keys.forEach((key) => {
-        if (scores[character as PlayCharacters][key as Criterias] !== 999)
-          sum += scores[character as PlayCharacters][key as Criterias];
+        const value = characterScores[key as Criterias];
+        if (value !== undefined && value !== 999) sum += value;
       });
       return sum;
     }
@@ -363,19 +349,20 @@ const Jury: NextPage = () => {
                     <TableCell>{totalScore(character)}</TableCell>
                   </TableRow>
                 ))}
-                <TableRow className="text-center font-extrabold text-xl">
+                <TableRow className="text-center text-xl font-extrabold">
                   <TableCell>ಒಟ್ಟು ಸ್ಕೋರ್</TableCell>
                   {criteriaList.map((criteria, i) => {
-                  const total = characters.reduce((sum, character) => {
-                    const score = scores[character]?.[criteria];
-                    return score !== 999 ? sum + score : sum;
-                  }, 0);
-                  return (
-                    <TableCell key={i}>{total}</TableCell>
-                  );
+                    const total = characters.reduce((sum, character) => {
+                      const score = scores[character]?.[criteria] ?? 0;
+                      return score !== 999 ? sum + score : sum;
+                    }, 0);
+                    return <TableCell key={i}>{total}</TableCell>;
                   })}
                   <TableCell>
-                  {characters.reduce((sum, character) => sum + totalScore(character), 0)}
+                    {characters.reduce(
+                      (sum, character) => sum + totalScore(character),
+                      0,
+                    )}
                   </TableCell>
                 </TableRow>
               </TableBody>
