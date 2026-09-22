@@ -27,7 +27,9 @@ export default function ViewTeam() {
   const team = teamData.data;
 
   const leaderMember =
-    team?.TeamMembers?.find((m) => m.characterId === null) ??
+    team?.TeamMembers?.find(
+      (m) => m.characterId === null && !m.characterName,
+    ) ??
     (team?.Leader
       ? {
           id: "leader",
@@ -42,14 +44,17 @@ export default function ViewTeam() {
       : null);
 
   const characterMembers =
-    team?.TeamMembers?.filter((m) => m.characterId !== null) ?? [];
+    team?.TeamMembers?.filter((m) =>
+      Boolean(m.characterName ?? m.characterId !== null),
+    ) ?? [];
 
   return (
     <Dialog>
       <DialogTrigger>
         <RegButton>View Team</RegButton>
       </DialogTrigger>
-      <DialogContent className="max-h-[92vh] w-[95vw] max-w-2xl overflow-y-auto rounded-2xl border border-white/20 bg-gradient-to-b from-slate-950 via-slate-900 to-black p-4 sm:p-6 text-white shadow-2xl backdrop-blur-xl sm:w-full">
+      <DialogContent className="max-h-[92vh] w-[95vw] max-w-2xl overflow-y-auto rounded-2xl border border-white/20 bg-gradient-to-b from-slate-950 via-slate-900 to-black p-4 text-white shadow-2xl backdrop-blur-xl sm:w-full sm:p-6">
+        <DialogTitle className="sr-only">Team details</DialogTitle>
         {teamData.isLoading ? (
           <div className="flex flex-col items-center justify-center gap-3 py-12 text-white/70">
             <span className="text-sm font-medium">Loading team details...</span>
@@ -111,7 +116,8 @@ export default function ViewTeam() {
                     Team Lead
                   </span>
                   <span className="text-xs text-white/50">
-                    Character: <span className="font-medium text-white/80">N/A</span>
+                    Character:{" "}
+                    <span className="font-medium text-white/80">N/A</span>
                   </span>
                 </div>
                 {leaderMember && (
@@ -166,12 +172,15 @@ export default function ViewTeam() {
                           alt={`${leaderMember.name ?? "Leader"} ID`}
                           height={40}
                           width={40}
+                          unoptimized
                           className="h-8 w-8 rounded border border-white/20 object-cover"
                         />
                         <span>View ID</span>
                       </a>
                     ) : (
-                      <span className="text-xs text-white/40">No ID uploaded</span>
+                      <span className="text-xs text-white/40">
+                        No ID uploaded
+                      </span>
                     )}
                   </div>
                 </div>
@@ -210,7 +219,55 @@ export default function ViewTeam() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {team.Prasanga?.characters && team.Prasanga.characters.length > 0 ? (
+                    {characterMembers.length > 0 ? (
+                      characterMembers.map((member) => (
+                        <TableRow
+                          key={member.id}
+                          className="border-white/10 hover:bg-white/5"
+                        >
+                          <TableCell className="font-medium text-secondary-100">
+                            {member.characterName ??
+                              member.Character?.character ??
+                              "Character"}
+                          </TableCell>
+                          <TableCell className="text-sm font-semibold text-white">
+                            {member.name}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {member.idURL ? (
+                              <a
+                                href={member.idURL}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                <Image
+                                  src={member.idURL}
+                                  alt={`${member.name} ID`}
+                                  height={50}
+                                  width={50}
+                                  unoptimized
+                                  className="h-10 w-10 rounded border border-white/20 object-cover"
+                                />
+                              </a>
+                            ) : (
+                              "—"
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {member.isIdVerified ? (
+                              <span className="text-xs text-green-400">
+                                Verified
+                              </span>
+                            ) : (
+                              <span className="text-xs text-amber-400">
+                                Pending
+                              </span>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : team.Prasanga?.characters &&
+                      team.Prasanga.characters.length > 0 ? (
                       team.Prasanga.characters.map((char) => {
                         const member = characterMembers.find(
                           (m) => m.characterId === char.id,
@@ -244,6 +301,7 @@ export default function ViewTeam() {
                                     alt={`${member.name ?? "Member"} ID`}
                                     height={50}
                                     width={50}
+                                    unoptimized
                                     className="h-10 w-10 rounded border border-white/20 object-cover"
                                   />
                                 </a>
@@ -297,11 +355,14 @@ export default function ViewTeam() {
                                   alt={`${member.name ?? "Member"} ID`}
                                   height={50}
                                   width={50}
+                                  unoptimized
                                   className="h-10 w-10 rounded border border-white/20 object-cover"
                                 />
                               </a>
                             ) : (
-                              <span className="text-xs text-white/40">No ID</span>
+                              <span className="text-xs text-white/40">
+                                No ID
+                              </span>
                             )}
                           </TableCell>
                           <TableCell>

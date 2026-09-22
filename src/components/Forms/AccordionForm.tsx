@@ -169,6 +169,7 @@ export default function AccordianForm({
                           src={MembersArray[index]?.idURL ?? ""}
                           alt="Teammate ID"
                           fill
+                          unoptimized
                           className="object-cover"
                         />
                       </div>

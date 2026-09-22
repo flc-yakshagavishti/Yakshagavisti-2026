@@ -86,6 +86,8 @@ export default function Admin() {
 
   // --- Mutations ---
   const verifyIdMutation = api.admin.verifyId.useMutation();
+  const updateTeamMemberCharacterMutation =
+    api.admin.updateTeamMemberCharacter.useMutation();
   const editTeamAccessMutation = api.admin.EditAccess.useMutation();
   const markAttendanceMutation = api.admin.markAttendance.useMutation();
   const updateTeamNameMutation = api.admin.updateTeamName.useMutation();
@@ -406,8 +408,12 @@ export default function Admin() {
         sanitizeText(member.name)
           ? sanitizeText(member.name)
           : "Member " + (idx + 1),
-        sanitizeText(member.Character?.character ?? "N/A")
-          ? sanitizeText(member.Character?.character ?? "N/A")
+        sanitizeText(
+          member.characterName ?? member.Character?.character ?? "N/A",
+        )
+          ? sanitizeText(
+              member.characterName ?? member.Character?.character ?? "N/A",
+            )
           : "N/A",
         member.contact ?? "N/A",
         member.isIdVerified ? "Yes" : "No",
@@ -524,7 +530,10 @@ export default function Admin() {
         <div className="flex items-center justify-between rounded-2xl border border-secondary-200/20 bg-secondary-200/10 p-5">
           <div>
             <h2 className="font-semibold text-white">Allow Team Formation</h2>
-            <p className="text-sm text-white/60">Allow team leads to enter all character details for their assigned prasanga.</p>
+            <p className="text-sm text-white/60">
+              Allow team leads to enter all character details for their assigned
+              prasanga.
+            </p>
           </div>
           <Switch
             checked={competitionSettings?.allowTeamFormation ?? false}
@@ -777,7 +786,7 @@ export default function Admin() {
                   {/* Team Leader Section */}
                   {(() => {
                     const leaderMember = element.TeamMembers.find(
-                      (m) => m.characterId === null,
+                      (m) => m.characterId === null && !m.characterName,
                     );
                     if (!leaderMember) return null;
                     return (
@@ -788,17 +797,23 @@ export default function Admin() {
                               Team Leader
                             </span>
                             <span className="text-xs text-white/50">
-                              Character: <span className="font-medium text-white/80">N/A</span>
+                              Character:{" "}
+                              <span className="font-medium text-white/80">
+                                N/A
+                              </span>
                             </span>
                           </div>
                           <div className="flex items-center gap-2">
                             {leaderMember.idURL && (
                               <button
                                 type="button"
-                                onClick={() => setSelectedImage(leaderMember.idURL)}
+                                onClick={() =>
+                                  setSelectedImage(leaderMember.idURL)
+                                }
                                 className="inline-flex items-center gap-1.5 rounded-lg border border-secondary-200/20 bg-secondary-200/10 px-2.5 py-1 text-xs text-secondary-100 transition-all hover:text-secondary-200"
                               >
-                                <ExternalLink className="h-3.5 w-3.5" /> View ID Card
+                                <ExternalLink className="h-3.5 w-3.5" /> View ID
+                                Card
                               </button>
                             )}
 
@@ -854,14 +869,18 @@ export default function Admin() {
 
                         <div className="mt-2.5 flex flex-wrap items-center gap-6 text-sm">
                           <div>
-                            <span className="text-xs text-white/50">Leader Name: </span>
+                            <span className="text-xs text-white/50">
+                              Leader Name:{" "}
+                            </span>
                             <span className="font-semibold text-white/90">
                               {leaderMember.name}
                             </span>
                           </div>
                           {leaderMember.contact && (
                             <div>
-                              <span className="text-xs text-white/50">Phone: </span>
+                              <span className="text-xs text-white/50">
+                                Phone:{" "}
+                              </span>
                               <span className="font-semibold text-white/90">
                                 {leaderMember.contact}
                               </span>
@@ -900,7 +919,10 @@ export default function Admin() {
                       <TableBody>
                         {(() => {
                           const characterMembers = element.TeamMembers.filter(
-                            (m) => m.characterId !== null,
+                            (m) =>
+                              Boolean(
+                                m.characterName ?? m.characterId !== null,
+                              ),
                           );
                           if (characterMembers.length === 0) {
                             return (
@@ -929,7 +951,35 @@ export default function Admin() {
                               </TableCell>
 
                               <TableCell className="text-sm font-medium text-secondary-100">
-                                {member.Character?.character ?? "N/A"}
+                                {member.characterName ??
+                                  member.Character?.character ??
+                                  "N/A"}
+                                <button
+                                  type="button"
+                                  className="ml-2 text-xs text-white/60 underline hover:text-white"
+                                  onClick={() => {
+                                    const value = window.prompt(
+                                      "Character name",
+                                      member.characterName ??
+                                        member.Character?.character ??
+                                        "",
+                                    );
+                                    if (!value?.trim()) return;
+                                    updateTeamMemberCharacterMutation.mutate(
+                                      {
+                                        id: member.id,
+                                        characterName: value.trim(),
+                                      },
+                                      {
+                                        onSuccess: () => void refetchTeams(),
+                                        onError: (error) =>
+                                          alert(error.message),
+                                      },
+                                    );
+                                  }}
+                                >
+                                  Edit
+                                </button>
                               </TableCell>
 
                               <TableCell className="text-center">
@@ -941,8 +991,8 @@ export default function Admin() {
                                     }
                                     className="inline-flex items-center gap-1.5 rounded-lg border border-secondary-200/20 bg-secondary-200/10 px-3 py-1.5 text-xs text-secondary-100 transition-all hover:text-secondary-200"
                                   >
-                                    <ExternalLink className="h-3.5 w-3.5" /> View
-                                    ID Card
+                                    <ExternalLink className="h-3.5 w-3.5" />{" "}
+                                    View ID Card
                                   </button>
                                 ) : (
                                   <span className="text-xs text-white/30">
@@ -1736,6 +1786,7 @@ export default function Admin() {
               src={selectedImage}
               alt="Full size participant ID card"
               fill
+              unoptimized
               className="object-contain"
               onClick={(e) => e.stopPropagation()}
             />

@@ -5,8 +5,22 @@ import { createTRPCRouter, protectedAdminProcedure } from "~/server/api/trpc";
 import kalasangamaError from "~/utils/customError";
 
 export const adminRouter = createTRPCRouter({
-  getCompetitionSettings: protectedAdminProcedure.query(({ ctx }) => ctx.db.competitionSettings.upsert({ where: { id: "default" }, update: {}, create: { id: "default", allowTeamFormation: false } })),
-  setTeamFormation: protectedAdminProcedure.input(z.object({ allowTeamFormation: z.boolean() })).mutation(({ ctx, input }) => ctx.db.competitionSettings.upsert({ where: { id: "default" }, update: { allowTeamFormation: input.allowTeamFormation }, create: { id: "default", allowTeamFormation: input.allowTeamFormation } })), 
+  getCompetitionSettings: protectedAdminProcedure.query(({ ctx }) =>
+    ctx.db.competitionSettings.upsert({
+      where: { id: "default" },
+      update: {},
+      create: { id: "default", allowTeamFormation: false },
+    }),
+  ),
+  setTeamFormation: protectedAdminProcedure
+    .input(z.object({ allowTeamFormation: z.boolean() }))
+    .mutation(({ ctx, input }) =>
+      ctx.db.competitionSettings.upsert({
+        where: { id: "default" },
+        update: { allowTeamFormation: input.allowTeamFormation },
+        create: { id: "default", allowTeamFormation: input.allowTeamFormation },
+      }),
+    ),
   getRegisteredTeams: protectedAdminProcedure.query(async ({ ctx }) => {
     try {
       const user = await ctx.db.user.findUnique({
@@ -37,6 +51,7 @@ export const adminRouter = createTRPCRouter({
                 idURL: true,
                 contact: true,
                 characterId: true,
+                characterName: true,
                 isIdVerified: true,
                 isAttended: true,
                 Character: {
@@ -107,6 +122,16 @@ export const adminRouter = createTRPCRouter({
         }
       }
     }),
+  updateTeamMemberCharacter: protectedAdminProcedure
+    .input(
+      z.object({ id: z.string(), characterName: z.string().trim().min(1) }),
+    )
+    .mutation(({ ctx, input }) =>
+      ctx.db.teamMembers.update({
+        where: { id: input.id },
+        data: { characterName: input.characterName },
+      }),
+    ),
   EditAccess: protectedAdminProcedure
     .input(z.object({ team: z.string() }))
     .mutation(async ({ ctx, input }) => {
@@ -644,7 +669,10 @@ export const adminRouter = createTRPCRouter({
         await tx.teamMembers.deleteMany({
           where: {
             teamId: input.teamId,
-            characterId: { not: null },
+            OR: [
+              { characterId: { not: null } },
+              { characterName: { not: null } },
+            ],
           },
         });
         await tx.individualScore.deleteMany({

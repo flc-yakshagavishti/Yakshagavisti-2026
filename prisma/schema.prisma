@@ -65,6 +65,7 @@ model TeamMembers {
   id           String     @id @default(cuid())
   name         String
   idURL        String
+  characterName String?
   contact      String?    @default("")
   teamId       String
   Team         Team       @relation(fields: [teamId], references: [id], onDelete: Cascade)

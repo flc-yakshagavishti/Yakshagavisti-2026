@@ -1,10 +1,12 @@
 import { TRPCError } from "@trpc/server";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { z } from "zod";
+import { validateSubmittedTeamMembers } from "~/utils/teamMembers";
 
 const memberSchema = z.object({
+  id: z.string().optional(),
   name: z.string().min(1),
-  characterId: z.string().min(1),
+  characterName: z.string().min(1),
   idURL: z.string().min(1),
 });
 
@@ -169,36 +171,68 @@ export const TeamRouter = createTRPCRouter({
           code: "CONFLICT",
           message: "An admin must assign a prasanga first.",
         });
-      const expected = new Set(team.Prasanga.characters.map((c) => c.id));
-      const submitted = input.members.map((m) => m.characterId);
-      if (
-        new Set(submitted).size !== submitted.length ||
-        submitted.length !== expected.size ||
-        submitted.some((id) => !expected.has(id))
-      )
+      try {
+        validateSubmittedTeamMembers(input.members);
+      } catch (error) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message:
-            "Provide details for every character in your assigned prasanga.",
+            error instanceof Error ? error.message : "Invalid team members",
         });
+      }
       await ctx.db.$transaction(async (tx) => {
-        for (const member of input.members)
-          await tx.teamMembers.upsert({
-            where: {
-              teamId_characterId: { teamId, characterId: member.characterId },
+        const existing = await tx.teamMembers.findMany({
+          where: {
+            teamId,
+            OR: [
+              { characterName: { not: null } },
+              { characterId: { not: null } },
+            ],
+          },
+          select: { id: true },
+        });
+        const retainedIds = input.members.flatMap((member) =>
+          member.id ? [member.id] : [],
+        );
+        await tx.teamMembers.deleteMany({
+          where: {
+            teamId,
+            id: {
+              in: existing
+                .map(({ id }) => id)
+                .filter((id) => !retainedIds.includes(id)),
             },
-            update: {
-              name: member.name,
-              idURL: member.idURL,
-              isIdVerified: false,
-            },
-            create: {
-              teamId,
-              characterId: member.characterId,
-              name: member.name,
-              idURL: member.idURL,
-            },
-          });
+          },
+        });
+        for (const member of input.members) {
+          if (member.id) {
+            const owned = existing.some(({ id }) => id === member.id);
+            if (!owned)
+              throw new TRPCError({
+                code: "BAD_REQUEST",
+                message: "Invalid team member.",
+              });
+            await tx.teamMembers.update({
+              where: { id: member.id },
+              data: {
+                characterName: member.characterName.trim(),
+                name: member.name.trim(),
+                idURL: member.idURL,
+                characterId: null,
+                isIdVerified: false,
+              },
+            });
+          } else {
+            await tx.teamMembers.create({
+              data: {
+                teamId,
+                characterName: member.characterName.trim(),
+                name: member.name.trim(),
+                idURL: member.idURL,
+              },
+            });
+          }
+        }
         await tx.team.update({
           where: { id: teamId },
           data: { isComplete: true, editRequested: false },
