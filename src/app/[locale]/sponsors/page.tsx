@@ -8,13 +8,16 @@ const Sponsor = () => {
   const t = useTranslations("Sponsors");
   const [selectedYear, setSelectedYear] = useState<string>("2025-26");
 
-  const sponsorsByYear: Record<string, Array<{
-    name: string;
-    subtitle: string;
-    description: string;
-    image: string;
-    url?: string;
-  }>> = {
+  const sponsorsByYear: Record<
+    string,
+    Array<{
+      name: string;
+      subtitle: string;
+      description: string;
+      image: string;
+      url?: string;
+    }>
+  > = {
     "2023-24": [
       {
         name: "Mr. Adarsh Sudhakar Hegde",
@@ -72,7 +75,7 @@ const Sponsor = () => {
         url: "https://www.ajimmangalore.ac.in/about-aj-institute-of-management.php",
       },
     ],
-    "2025-26": [
+    "2024-25": [
       {
         name: "WENAMITAA",
         subtitle: t("Associate"),
@@ -113,10 +116,55 @@ const Sponsor = () => {
           "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSlCACI8589CTw86W5WCflW1-SSt0XiLM_T-Rey8mczoYM_9oeV9NscUjAWTyMz2YhjaA&usqp=CAU",
       },
     ],
+    "2025-26": [
+      {
+        name: "G L Acharya jewellers",
+        subtitle: "",
+        description: "",
+        image:
+          "https://res.cloudinary.com/mqgak7n7/image/upload/v1790309537/GL-Acharya-jewellers.webp",
+      },
+      {
+        name: "Master Plannery",
+        subtitle: "",
+        description: "",
+        image:
+          "https://res.cloudinary.com/mqgak7n7/image/upload/v1790309536/masterplannery.webp",
+      },
+      {
+        name: "Muliya Jewels",
+        subtitle: "",
+        description: "",
+        image:
+          "https://res.cloudinary.com/mqgak7n7/image/upload/v1790309537/Muliya_jewels_logo.webp",
+      },
+      {
+        name: "Nattoja",
+        subtitle: "",
+        description: "",
+        image:
+          "https://res.cloudinary.com/mqgak7n7/image/upload/v1790309537/Nattoja.webp",
+      },
+      {
+        name: "Shree Caterers",
+        subtitle: "",
+        description: "",
+        image:
+          "https://res.cloudinary.com/mqgak7n7/image/upload/v1790309537/Shree_Caterers.webp",
+      },
+      {
+        name: "Canara Bank",
+        subtitle: "",
+        description: "",
+        image:
+          "https://res.cloudinary.com/mqgak7n7/image/upload/v1790309536/canara_bank_logo.webp",
+      },
+    ],
   };
 
   const years = [
     { value: "2023-24", label: "2023-24" },
+    { value: "2024-25", label: "2024-25" },
     { value: "2025-26", label: "2025-26" },
     { value: "2026-27", label: "2026-27", comingSoon: true },
   ];
@@ -142,20 +190,20 @@ const Sponsor = () => {
               key={year.value}
               onClick={() => !year.comingSoon && setSelectedYear(year.value)}
               disabled={year.comingSoon}
-              className={`group relative px-8 py-3.5 rounded-xl font-semibold text-base sm:text-lg tracking-wide transition-all duration-300 border-2 ${
+              className={`group relative rounded-xl border-2 px-8 py-3.5 text-base font-semibold tracking-wide transition-all duration-300 sm:text-lg ${
                 selectedYear === year.value
-                  ? "bg-gradient-to-br from-secondary-100 to-secondary-200 text-white border-secondary-100 scale-105 shadow-2xl shadow-secondary-100/60 ring-2 ring-secondary-100/30 ring-offset-2 ring-offset-primary-100"
+                  ? "scale-105 border-secondary-100 bg-gradient-to-br from-secondary-100 to-secondary-200 text-white shadow-2xl shadow-secondary-100/60 ring-2 ring-secondary-100/30 ring-offset-2 ring-offset-primary-100"
                   : year.comingSoon
-                  ? "bg-gray-800/30 text-gray-500 border-gray-700/50 cursor-not-allowed opacity-60"
-                  : "bg-gray-800/40 text-white border-gray-700 hover:bg-gradient-to-br hover:from-gray-700 hover:to-gray-800 hover:border-secondary-200/50 hover:scale-105 hover:shadow-xl hover:shadow-gray-700/50 active:scale-95"
+                    ? "cursor-not-allowed border-gray-700/50 bg-gray-800/30 text-gray-500 opacity-60"
+                    : "border-gray-700 bg-gray-800/40 text-white hover:scale-105 hover:border-secondary-200/50 hover:bg-gradient-to-br hover:from-gray-700 hover:to-gray-800 hover:shadow-xl hover:shadow-gray-700/50 active:scale-95"
               }`}
             >
               <span className="relative z-10">{year.label}</span>
               {!year.comingSoon && selectedYear !== year.value && (
-                <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-secondary-100/0 to-secondary-200/0 group-hover:from-secondary-100/10 group-hover:to-secondary-200/10 transition-all duration-300" />
+                <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-secondary-100/0 to-secondary-200/0 transition-all duration-300 group-hover:from-secondary-100/10 group-hover:to-secondary-200/10" />
               )}
               {year.comingSoon && (
-                <span className="absolute -top-2 -right-2 bg-gradient-to-r from-secondary-200 to-secondary-100 text-[10px] sm:text-xs font-bold px-2.5 py-1 rounded-full text-white shadow-lg animate-pulse">
+                <span className="absolute -right-2 -top-2 animate-pulse rounded-full bg-gradient-to-r from-secondary-200 to-secondary-100 px-2.5 py-1 text-[10px] font-bold text-white shadow-lg sm:text-xs">
                   Soon
                 </span>
               )}
@@ -182,11 +230,12 @@ const Sponsor = () => {
         ) : (
           <div className="flex flex-col items-center justify-center gap-4 py-16">
             <div className="text-6xl">🎯</div>
-            <h3 className="text-2xl sm:text-3xl font-medium text-gray-300">
+            <h3 className="text-2xl font-medium text-gray-300 sm:text-3xl">
               No sponsors yet for {selectedYear}
             </h3>
-            <p className="text-lg text-gray-400 max-w-md">
-              We&apos;re working on bringing amazing sponsors for this edition. Stay tuned!
+            <p className="max-w-md text-lg text-gray-400">
+              We&apos;re working on bringing amazing sponsors for this edition.
+              Stay tuned!
             </p>
           </div>
         )}
