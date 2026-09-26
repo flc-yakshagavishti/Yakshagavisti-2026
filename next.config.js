@@ -21,6 +21,9 @@ const config = {
   //   defaultLocale: "en",
   // },
   images: {
+    // Serve source images directly: concurrent Sharp/libvips optimization
+    // crashes the server with GLib-GObject errors (including on /team).
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: "https",
