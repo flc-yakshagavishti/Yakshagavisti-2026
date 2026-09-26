@@ -118,26 +118,31 @@ const Sponsor = () => {
     ],
     "2025-26": [
       {
-        name: "G L Acharya jewellers",
-        subtitle: "",
+        name: "Nattoja Foundation",
+        subtitle: "Co Sponsor",
         description:
-          "Established in 1957 by Sri G L Acharya in the agricultural town of Puttur. G L Acharya Jewellers has had a long memorable journey of Trust, Purity, Innovative Designs and Customer Delight. With these values as our foundation, we have evolved from a humble 100sft. shop to a momentous group of five showrooms in Puttur, Hassan, Sullia, Kushalnagar and Moodbidri, with an upcoming flagship showroom in Mangaluru launching by the end of 2026.",
+          "The Nattoja Foundation Trust is a premier educational and philanthropic organization based in Puttur, Karnataka, founded by Shri Subramanya Nattoja and Smt. Rajashree S. Nattoja to provide value-based, culturally rooted education. The trust sponsors and manages the prominent Ambika Group of Educational Institutions, which includes Ambika Vidyalaya CBSE (the first CBSE school in Puttur Taluk), pre-university day and residential colleges, a degree college, and competitive exam coaching academies. Distinctly driven by a strong ethos of patriotism and social service, the foundation constructed and maintains the Amar Jawan Jyothi war memorial in Puttur and runs a major philanthropic initiative offering entirely free education, food, and accommodation from kindergarten up to graduation for children of martyrs and victims of terror attacks.",
         image:
-          "https://res.cloudinary.com/mqgak7n7/image/upload/v1790309537/GL-Acharya-jewellers.webp",
-        url: "http://glacharya.com/",
+          "https://res.cloudinary.com/mqgak7n7/image/upload/v1790309537/Nattoja.webp",
       },
       {
-        name: "Master Plannery",
-        subtitle: "",
+        name: "Canara Bank",
+        subtitle: "Co Sponsor",
         description:
-          "Master Plannery is a technology, engineering, construction, manufacturing and financial company.It is the Innovation imbibed with compassion to embrace all living creatures and the whole of nature and its beauty that distinguishes Master Plannery from the rest of the world. More than six decades of a strong, customer-focused approach and the continuous quest for the technology and building methods have enabled it to attain and sustain leadership in all its major lines of the industry. Master Plannery cutting edge capabilities covering the basic principles of construction and services extend to large industrial and infrastructure projects from concept to commissioning. Master Plannery believes that progress must be achieved in harmony with the environment. A commitment to community welfare and environmental protection are an integral part of the corporate vision",
+          "Canara Bank is one of India's oldest and largest public sector banks, founded in July 1906 by the visionary philanthropist Shri Ammembal Subba Rao Pai in Mangaluru, Karnataka. Originally established as the Canara Hindu Permanent Fund Limited to assist small traders and eliminate predatory moneylending, the bank was nationalised by the Government of India in 1969 and is now headquartered in Bengaluru. Following its 2020 merger with Syndicate Bank, it operates a massive network of over 10,000 domestic branches, several international offices (including London and New York), and robust digital banking platforms like the Canara ai1 app. Driven by its founding principles of community welfare and customer centricity, the bank remains a leading national financial institution with a strong emphasis on retail, agriculture, and MSME lending.",
         image:
-          "https://res.cloudinary.com/mqgak7n7/image/upload/v1790309536/masterplannery.webp",
-        url: "https://masterplannery.com/",
+          "https://res.cloudinary.com/mqgak7n7/image/upload/v1790309536/canara_bank_logo.webp",
+      },
+      {
+        name: "Shree Caterers",
+        subtitle: "Executive Sponsor",
+        description: "",
+        image:
+          "https://res.cloudinary.com/mqgak7n7/image/upload/v1790309537/Shree_Caterers.webp",
       },
       {
         name: "Muliya Jewels",
-        subtitle: "",
+        subtitle: "Executive Sponsor",
         description:
           "Muliya Gold & Diamonds (popularly known as Muliya Jewellers) is a highly respected jewellery brand in Karnataka with a legacy dating back to 1944. Established by Mr. Keshava Bhatta in Puttur, the brand has grown over eight decades to become a trusted household name, particularly celebrated across Coastal Karnataka (Dakshina Kannada) and the Coorg (Kodagu) regions. They are widely renowned for their specialty in traditional Kodava jewelry, exquisite temple and antique designs, alongside modern diamond, gold, and dedicated silver ornaments.",
         image:
@@ -145,27 +150,28 @@ const Sponsor = () => {
         url: "https://muliya.in/",
       },
       {
-        name: "Nattoja",
-        subtitle: "",
+        name: "Master Plannery",
+        subtitle: "Executive Sponsor",
         description:
-          "The Nattoja Foundation Trust is a premier educational and philanthropic organization based in Puttur, Karnataka, founded by Shri Subramanya Nattoja and Smt. Rajashree S. Nattoja to provide value-based, culturally rooted education. The trust sponsors and manages the prominent Ambika Group of Educational Institutions, which includes Ambika Vidyalaya CBSE (the first CBSE school in Puttur Taluk), pre-university day and residential colleges, a degree college, and competitive exam coaching academies. Distinctly driven by a strong ethos of patriotism and social service, the foundation constructed and maintains the Amar Jawan Jyothi war memorial in Puttur and runs a major philanthropic initiative offering entirely free education, food, and accommodation from kindergarten up to graduation for children of martyrs and victims of terror attacks.",
+          "Master Plannery is a technology, engineering, construction, manufacturing and financial company.It is the Innovation imbibed with compassion to embrace all living creatures and the whole of nature and its beauty that distinguishes Master Plannery from the rest of the world. More than six decades of a strong, customer-focused approach and the continuous quest for the technology and building methods have enabled it to attain and sustain leadership in all its major lines of the industry. Master Plannery cutting edge capabilities covering the basic principles of construction and services extend to large industrial and infrastructure projects from concept to commissioning. Master Plannery believes that progress must be achieved in harmony with the environment. A commitment to community welfare and environmental protection are an integral part of the corporate vision",
         image:
-          "https://res.cloudinary.com/mqgak7n7/image/upload/v1790309537/Nattoja.webp",
+          "https://res.cloudinary.com/mqgak7n7/image/upload/v1790309536/masterplannery.webp",
+        url: "https://masterplannery.com/",
       },
       {
-        name: "Shree Caterers",
-        subtitle: "",
+        name: "Sri Prashanth Kumar Holla",
+        subtitle: "Executive Sponsor",
         description: "",
-        image:
-          "https://res.cloudinary.com/mqgak7n7/image/upload/v1790309537/Shree_Caterers.webp",
+        image: "Didn't share yet.jpg :<",
       },
       {
-        name: "Canara Bank",
-        subtitle: "",
+        name: "G L Acharya Jewellers",
+        subtitle: "Sponsor",
         description:
-          "Canara Bank is one of India's oldest and largest public sector banks, founded in July 1906 by the visionary philanthropist Shri Ammembal Subba Rao Pai in Mangaluru, Karnataka. Originally established as the Canara Hindu Permanent Fund Limited to assist small traders and eliminate predatory moneylending, the bank was nationalised by the Government of India in 1969 and is now headquartered in Bengaluru. Following its 2020 merger with Syndicate Bank, it operates a massive network of over 10,000 domestic branches, several international offices (including London and New York), and robust digital banking platforms like the Canara ai1 app. Driven by its founding principles of community welfare and customer centricity, the bank remains a leading national financial institution with a strong emphasis on retail, agriculture, and MSME lending.",
+          "Established in 1957 by Sri G L Acharya in the agricultural town of Puttur. G L Acharya Jewellers has had a long memorable journey of Trust, Purity, Innovative Designs and Customer Delight. With these values as our foundation, we have evolved from a humble 100sft. shop to a momentous group of five showrooms in Puttur, Hassan, Sullia, Kushalnagar and Moodbidri, with an upcoming flagship showroom in Mangaluru launching by the end of 2026.",
         image:
-          "https://res.cloudinary.com/mqgak7n7/image/upload/v1790309536/canara_bank_logo.webp",
+          "https://res.cloudinary.com/mqgak7n7/image/upload/v1790309537/GL-Acharya-jewellers.webp",
+        url: "http://glacharya.com/",
       },
     ],
   };
