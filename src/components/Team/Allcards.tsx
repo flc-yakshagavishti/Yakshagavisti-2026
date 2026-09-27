@@ -2,6 +2,29 @@ import React from "react";
 import Card from "~/components/Team/Corecard";
 
 const AllCards: React.FC = () => {
+  const techTeam2026_27 = [
+    {
+      name: "Madvith D Amin",
+      role: "Web Developer",
+      linkedinURL: "https://www.linkedin.com/in/madvith-d-amin/",
+      githubURL: "https://github.com/Madvith-d/",
+      url: "https://res.cloudinary.com/mqgak7n7/image/upload/v1790484458/Madvith_D_Amin.png",
+    },
+    {
+      name: "Vishwas Sharma",
+      role: "Web Developer",
+      linkedinURL: "https://linkedin.com/in/vishwassharma28/",
+      githubURL: "https://github.com/VishwasSharma28",
+      url: "https://res.cloudinary.com/mqgak7n7/image/upload/v1790487023/WhatsApp_Image_2026-09-27_at_10.58.36_AM.jpg",
+    },
+    {
+      name: "Alen Chettiyar",
+      role: "Web Developer",
+      linkedinURL: "https://www.linkedin.com/in/alen-chettiar-940329355/",
+      githubURL: "https://github.com/AlenChettiar",
+      url: "https://res.cloudinary.com/mqgak7n7/image/upload/v1790484451/Alen_Agnel_Chettiar.png",
+    },
+  ];
   const techTeam2025_26 = [
     {
       name: "Ashton Prince Mathias",
@@ -55,6 +78,19 @@ const AllCards: React.FC = () => {
       {/* 2026-27 Tech Team */}
       <div className="w-full">
         <h2 className="mb-8 text-center text-3xl font-bold text-secondary-100 md:text-4xl">
+          Tech Team 2026-27
+        </h2>
+        <div className="flex items-center justify-center">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {techTeam2026_27.map((cardProp, idx) => (
+              <Card key={idx} {...cardProp} />
+            ))}
+          </div>
+        </div>
+      </div>
+      {/* 2025-26 Tech Team */}
+      <div className="w-full">
+        <h2 className="mb-8 text-center text-3xl font-bold text-secondary-100 md:text-4xl">
           Tech Team 2025-26
         </h2>
         <div className="flex items-center justify-center">
@@ -66,7 +102,7 @@ const AllCards: React.FC = () => {
         </div>
       </div>
 
-      {/* 2025-26 Tech Team */}
+      {/* 2024-25 Tech Team */}
       <div className="w-full">
         <h2 className="mb-8 text-center text-3xl font-bold text-secondary-100 md:text-4xl">
           Tech Team 2024-25
