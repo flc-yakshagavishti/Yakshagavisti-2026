@@ -3,7 +3,12 @@
 import { useSession } from "next-auth/react";
 import { api } from "~/trpc/react";
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "~/i18n/navigation";
+import toast from "react-hot-toast";
+import { PrasangaSection } from "~/components/admin/PrasangaSection";
+import { TeamReviewCard } from "~/components/admin/TeamReviewCard";
+import { AdminSelect } from "~/components/admin/AdminSelect";
+import "~/components/admin/admin.css";
 import { useState } from "react";
 import { Role } from "@prisma/client";
 import NotFound from "~/app/[locale]/not-found";
@@ -32,7 +37,6 @@ import {
   DialogTitle,
 } from "~/components/ui/dialog";
 
-import { ImSpinner9 } from "react-icons/im";
 import {
   Users,
   Building2,
@@ -43,13 +47,13 @@ import {
   Edit2,
   Trash2,
   Download,
-  CheckCircle2,
   XCircle,
-  UserCheck,
   UserPlus,
   ShieldAlert,
-  X,
+  BookOpen,
+  RefreshCw,
   ExternalLink,
+  Loader2,
 } from "lucide-react";
 
 interface jsPDFWithAutoTable extends jsPDF {
@@ -59,30 +63,35 @@ interface jsPDFWithAutoTable extends jsPDF {
 }
 
 export default function Admin() {
-  const { data: sessionData } = useSession();
+  const { data: sessionData, status: sessionStatus } = useSession();
   const utils = api.useUtils();
-  const isAdmin = !sessionData?.user || sessionData?.user?.role !== Role.ADMIN;
+  const isAdmin = sessionData?.user?.role === Role.ADMIN;
 
-  // --- Queries ---
-  const { data: teams, refetch: refetchTeams } =
-    api.admin.getRegisteredTeams.useQuery(undefined, { enabled: !isAdmin });
-
-  const { data: colleges, refetch: refetchColleges } =
-    api.admin.getColleges.useQuery(undefined, { enabled: !isAdmin });
-
-  const { data: admins, refetch: refetchAdmins } = api.admin.getAdmins.useQuery(
-    undefined,
-    { enabled: !isAdmin },
-  );
-
-  const { data: judges, refetch: refetchJudges } = api.admin.getJudges.useQuery(
-    undefined,
-    { enabled: !isAdmin },
-  );
-  const { data: prasangas, refetch: refetchPrasangas } =
-    api.admin.getPrasangas.useQuery(undefined, { enabled: !isAdmin });
-  const { data: competitionSettings } =
-    api.admin.getCompetitionSettings.useQuery(undefined, { enabled: !isAdmin });
+  // Keep query states visible: an unavailable list is not an empty list.
+  const teamsQuery = api.admin.getRegisteredTeams.useQuery(undefined, {
+    enabled: isAdmin,
+  });
+  const collegesQuery = api.admin.getColleges.useQuery(undefined, {
+    enabled: isAdmin,
+  });
+  const adminsQuery = api.admin.getAdmins.useQuery(undefined, {
+    enabled: isAdmin,
+  });
+  const judgesQuery = api.admin.getJudges.useQuery(undefined, {
+    enabled: isAdmin,
+  });
+  const prasangasQuery = api.admin.getPrasangas.useQuery(undefined, {
+    enabled: isAdmin,
+  });
+  const settingsQuery = api.admin.getCompetitionSettings.useQuery(undefined, {
+    enabled: isAdmin,
+  });
+  const { data: teams, refetch: refetchTeams } = teamsQuery;
+  const { data: colleges, refetch: refetchColleges } = collegesQuery;
+  const { data: admins, refetch: refetchAdmins } = adminsQuery;
+  const { data: judges, refetch: refetchJudges } = judgesQuery;
+  const { data: prasangas, refetch: refetchPrasangas } = prasangasQuery;
+  const { data: competitionSettings } = settingsQuery;
 
   // --- Mutations ---
   const verifyIdMutation = api.admin.verifyId.useMutation();
@@ -92,17 +101,14 @@ export default function Admin() {
   const markAttendanceMutation = api.admin.markAttendance.useMutation();
   const updateTeamNameMutation = api.admin.updateTeamName.useMutation();
   const assignPrasangaMutation = api.admin.assignPrasanga.useMutation();
-  const createPrasangaMutation = api.admin.createPrasanga.useMutation();
-  const createCharacterMutation =
-    api.admin.createPrasangaCharacter.useMutation();
-  const deleteCharacterMutation =
-    api.admin.deletePrasangaCharacter.useMutation();
+
   const setTeamFormationMutation = api.admin.setTeamFormation.useMutation({
     onSuccess: async () => {
       await utils.admin.getCompetitionSettings.invalidate();
+      toast.success("Team formation setting updated");
     },
     onError: (error) => {
-      alert(error.message);
+      toast.error(error.message);
     },
   });
 
@@ -122,7 +128,15 @@ export default function Admin() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   // Filters & Search
+  const [activeTab, setActiveTab] = useState("teams");
   const [teamSearch, setTeamSearch] = useState("");
+  const [teamFilter, setTeamFilter] = useState("all");
+  const [prasangaFilter, setPrasangaFilter] = useState("");
+  const [editingCharacter, setEditingCharacter] = useState<{
+    id: string;
+    name: string;
+    characterName: string;
+  } | null>(null);
   const [collegeSearch, setCollegeSearch] = useState("");
   const [adminSearch, setAdminSearch] = useState("");
   const [judgeSearch, setJudgeSearch] = useState("");
@@ -152,12 +166,29 @@ export default function Admin() {
   const [judgeModalOpen, setJudgeModalOpen] = useState(false);
   const [judgeEmail, setJudgeEmail] = useState("");
   const [judgeName, setJudgeName] = useState("");
-  const [newPrasangaName, setNewPrasangaName] = useState("");
-  const [newCharacterNames, setNewCharacterNames] = useState<
-    Record<string, string>
-  >({});
 
-  if (isAdmin) return <NotFound />;
+  if (sessionStatus === "loading") {
+    return (
+      <div
+        role="status"
+        className="flex min-h-screen items-center justify-center gap-3 text-white/70"
+      >
+        <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" /> Loading
+        admin dashboard…
+      </div>
+    );
+  }
+  if (!isAdmin) return <NotFound />;
+
+  const activeQuery =
+    {
+      teams: teamsQuery,
+      colleges: collegesQuery,
+      admins: adminsQuery,
+      judges: judgesQuery,
+      prasangas: prasangasQuery,
+    }[activeTab as "teams" | "colleges" | "admins" | "judges" | "prasangas"] ??
+    teamsQuery;
 
   // --- Handlers ---
   function verifyId(userId: string) {
@@ -209,7 +240,8 @@ export default function Admin() {
   }
 
   function handleUpdateTeamName() {
-    if (!editingTeam || !newTeamName.trim()) return;
+    if (!editingTeam || !newTeamName.trim() || updateTeamNameMutation.isPending)
+      return;
     updateTeamNameMutation.mutate(
       { teamId: editingTeam.id, name: newTeamName.trim() },
       {
@@ -226,7 +258,12 @@ export default function Admin() {
   }
 
   function handleSaveCollege() {
-    if (!editingCollege?.name.trim()) return;
+    if (
+      !editingCollege?.name.trim() ||
+      addCollegeMutation.isPending ||
+      updateCollegeMutation.isPending
+    )
+      return;
 
     if (editingCollege.id) {
       updateCollegeMutation.mutate(
@@ -278,7 +315,7 @@ export default function Admin() {
   }
 
   function handleAddAdmin() {
-    if (!adminEmail.trim()) return;
+    if (!adminEmail.trim() || addAdminMutation.isPending) return;
     addAdminMutation.mutate(
       {
         email: adminEmail.trim(),
@@ -313,7 +350,7 @@ export default function Admin() {
   }
 
   function handleAddJudge() {
-    if (!judgeEmail.trim()) return;
+    if (!judgeEmail.trim() || addJudgeMutation.isPending) return;
     addJudgeMutation.mutate(
       {
         email: judgeEmail.trim(),
@@ -448,16 +485,26 @@ export default function Admin() {
   };
 
   // --- Filtered Data ---
-  const filteredTeams = teams?.filter(
-    (t) =>
-      t.name.toLowerCase().includes(teamSearch.toLowerCase()) ||
-      (t.College?.name
-        ? t.College.name.toLowerCase().includes(teamSearch.toLowerCase())
-        : false) ||
-      (t.Leader?.name
-        ? t.Leader.name.toLowerCase().includes(teamSearch.toLowerCase())
-        : false),
-  );
+  const filteredTeams = teams?.filter((team) => {
+    const query = teamSearch.trim().toLowerCase();
+    const matchesSearch = [
+      team.name,
+      team.College?.name,
+      team.Leader?.name,
+      team.Prasanga?.name,
+    ].some((value) => value?.toLowerCase().includes(query));
+    const matchesStatus =
+      teamFilter === "all" ||
+      (teamFilter === "attendance" && !team.attended) ||
+      (teamFilter === "verification" &&
+        team.TeamMembers.some((member) => !member.isIdVerified)) ||
+      (teamFilter === "unassigned" && !team.Prasanga);
+    return (
+      matchesSearch &&
+      matchesStatus &&
+      (!prasangaFilter || team.Prasanga?.id === prasangaFilter)
+    );
+  });
 
   const filteredColleges = colleges?.filter(
     (c) =>
@@ -479,591 +526,374 @@ export default function Admin() {
       j.User.email.toLowerCase().includes(judgeSearch.toLowerCase()),
   );
 
-  // Counters
-  const totalTeams = teams?.length ?? 0;
-  const attendedTeams = teams?.filter((t) => t.attended).length ?? 0;
-  const totalColleges = colleges?.length ?? 0;
-  const totalAdminsCount = admins?.length ?? 0;
-  const totalJudgesCount = judges?.length ?? 0;
+  // Counts always reflect query data; unavailable data is never shown as zero.
+  const totalTeams = teams?.length ?? "—";
+  const pendingVerification =
+    teams?.filter((team) =>
+      team.TeamMembers.some((member) => !member.isIdVerified),
+    ).length ?? "—";
+  const pendingAttendance =
+    teams?.filter((team) => !team.attended).length ?? "—";
+  const unassignedTeams = teams?.filter((team) => !team.Prasanga).length ?? "—";
+  const sections = [
+    {
+      id: "teams",
+      label: "Teams",
+      icon: Users,
+      count: totalTeams,
+      description:
+        "Review participant IDs, mark attendance, and manage team details.",
+    },
+    {
+      id: "prasangas",
+      label: "Prasangas",
+      icon: BookOpen,
+      count: prasangas?.length ?? "—",
+      description:
+        "Manage the prasanga catalog and see where each one is assigned.",
+    },
+    {
+      id: "colleges",
+      label: "Colleges",
+      icon: Building2,
+      count: colleges?.length ?? "—",
+      description: "Manage participating institutions and their team access.",
+    },
+    {
+      id: "admins",
+      label: "Admins",
+      icon: ShieldCheck,
+      count: admins?.length ?? "—",
+      description: "Manage who can access this administration workspace.",
+    },
+    {
+      id: "judges",
+      label: "Judges",
+      icon: Award,
+      count: judges?.length ?? "—",
+      description: "Manage jury accounts and access to the scoring panel.",
+    },
+  ];
+  const currentSection = sections.find((section) => section.id === activeTab)!;
+  const attendedTeams = teams?.filter((t) => t.attended).length ?? "—";
 
   return (
-    <div className="min-h-screen px-4 pb-20 pt-28 text-white sm:px-8 md:px-12 lg:px-16">
-      <div className="mx-auto max-w-7xl space-y-8">
-        {/* Header Section */}
-        <div className="flex flex-col justify-between gap-6 rounded-2xl border border-[rgba(41,47,82,0.6)] bg-[rgba(41,47,82,0.35)] p-6 shadow-xl backdrop-blur-md md:flex-row md:items-center md:p-8">
-          <div>
-            <div className="mb-2 flex items-center gap-3">
-              <span className="rounded-full border border-secondary-200/30 bg-secondary-200/10 px-3 py-1 text-xs font-semibold text-secondary-100">
-                Yakshagavishti 2026
-              </span>
-              <span className="rounded-full border border-purple-500/20 bg-[rgba(48,21,75,0.6)] px-3 py-1 text-xs font-semibold text-purple-300">
-                Admin Control Center
-              </span>
-            </div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-              Dashboard
-            </h1>
-            <p className="mt-1 text-sm text-white/50 sm:text-base">
-              Manage teams, verify participant IDs, update colleges, and
-              provision OAuth access.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            <Link href="/admin/leaderboard">
-              <Button className="flex items-center gap-2 rounded-xl border border-[rgba(41,47,82,0.8)] bg-[rgba(41,47,82,0.7)] px-4 py-2 font-medium text-white transition-all hover:bg-[rgba(41,47,82,1)]">
-                <Award className="h-4 w-4 text-secondary-100" />
-                Leaderboard
-              </Button>
-            </Link>
-
-            <Button
-              onClick={downloadPDF}
-              className="flex items-center gap-2 rounded-xl bg-secondary-200 px-4 py-2 font-semibold text-white shadow-lg shadow-orange-500/20 transition-all hover:bg-orange-600"
-            >
-              <Download className="h-4 w-4" />
-              Download Teams PDF
-            </Button>
-          </div>
+    <div className="admin-workspace">
+      <a className="admin-skip-link" href="#admin-content">
+        Skip to workspace
+      </a>
+      <header className="admin-topbar">
+        <Link href="/" className="admin-brand">
+          Yakshagavishti <span>2026</span>
+        </Link>
+        <div className="admin-topbar__context">
+          <ShieldCheck size={16} aria-hidden="true" />
+          <h1>Administration</h1>
         </div>
-
-        <div className="flex items-center justify-between rounded-2xl border border-secondary-200/20 bg-secondary-200/10 p-5">
-          <div>
-            <h2 className="font-semibold text-white">Allow Team Formation</h2>
-            <p className="text-sm text-white/60">
-              Allow team leads to enter all character details for their assigned
-              prasanga.
-            </p>
+        <span
+          className="admin-signed-in"
+          title={sessionData?.user?.email ?? undefined}
+        >
+          {sessionData?.user?.name ?? "Administrator"}
+        </span>
+      </header>
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        orientation="vertical"
+        className="admin-shell"
+      >
+        <aside className="admin-rail" aria-label="Administration navigation">
+          <div className="admin-mobile-nav">
+            <Label htmlFor="admin-section">Workspace</Label>
+            <AdminSelect
+              id="admin-section"
+              label="Workspace"
+              value={activeTab}
+              onValueChange={setActiveTab}
+              options={sections.map((section) => ({
+                value: section.id,
+                label: `${section.label} (${section.count})`,
+              }))}
+            />
           </div>
-          <Switch
-            checked={competitionSettings?.allowTeamFormation ?? false}
-            disabled={setTeamFormationMutation.isPending}
-            onCheckedChange={(allowTeamFormation) =>
-              setTeamFormationMutation.mutate({ allowTeamFormation })
-            }
-          />
-        </div>
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-5">
-          <div className="rounded-xl border border-[rgba(41,47,82,0.5)] bg-[rgba(41,47,82,0.3)] p-5">
-            <div className="mb-2 flex items-center justify-between text-white/50">
-              <span className="text-xs font-medium uppercase tracking-wider">
-                Registered Teams
-              </span>
-              <Users className="h-4 w-4 text-blue-400" />
-            </div>
-            <div className="text-2xl font-bold text-white sm:text-3xl">
-              {totalTeams}
-            </div>
-            <div className="mt-1 text-xs text-white/40">
-              {attendedTeams} Present on field
-            </div>
-          </div>
-
-          <div className="rounded-xl border border-[rgba(41,47,82,0.5)] bg-[rgba(41,47,82,0.3)] p-5">
-            <div className="mb-2 flex items-center justify-between text-white/50">
-              <span className="text-xs font-medium uppercase tracking-wider">
-                Attended Teams
-              </span>
-              <UserCheck className="h-4 w-4 text-emerald-400" />
-            </div>
-            <div className="text-2xl font-bold text-emerald-400 sm:text-3xl">
-              {attendedTeams}
-            </div>
-            <div className="mt-1 text-xs text-white/40">
-              Verified attendance
-            </div>
-          </div>
-
-          <div className="rounded-xl border border-[rgba(41,47,82,0.5)] bg-[rgba(41,47,82,0.3)] p-5">
-            <div className="mb-2 flex items-center justify-between text-white/50">
-              <span className="text-xs font-medium uppercase tracking-wider">
-                Colleges
-              </span>
-              <Building2 className="h-4 w-4 text-purple-400" />
-            </div>
-            <div className="text-2xl font-bold text-white sm:text-3xl">
-              {totalColleges}
-            </div>
-            <div className="mt-1 text-xs text-white/40">Institutions</div>
-          </div>
-
-          <div className="rounded-xl border border-[rgba(41,47,82,0.5)] bg-[rgba(41,47,82,0.3)] p-5">
-            <div className="mb-2 flex items-center justify-between text-white/50">
-              <span className="text-xs font-medium uppercase tracking-wider">
-                Admin Accounts
-              </span>
-              <ShieldCheck className="h-4 w-4 text-secondary-100" />
-            </div>
-            <div className="text-2xl font-bold text-white sm:text-3xl">
-              {totalAdminsCount}
-            </div>
-            <div className="mt-1 text-xs text-white/40">
-              Google OAuth authed
-            </div>
-          </div>
-
-          <div className="col-span-2 rounded-xl border border-[rgba(41,47,82,0.5)] bg-[rgba(41,47,82,0.3)] p-5 lg:col-span-1">
-            <div className="mb-2 flex items-center justify-between text-white/50">
-              <span className="text-xs font-medium uppercase tracking-wider">
-                Judges
-              </span>
-              <Award className="h-4 w-4 text-purple-400" />
-            </div>
-            <div className="text-2xl font-bold text-white sm:text-3xl">
-              {totalJudgesCount}
-            </div>
-            <div className="mt-1 text-xs text-white/40">
-              Scoring jury members
-            </div>
-          </div>
-        </div>
-
-        {/* Tabbed Admin Interface */}
-        <Tabs defaultValue="teams" className="w-full space-y-6">
-          {/* Custom tab buttons - avoids layout issues with Radix TabsList inline-flex base */}
-          <TabsList className="flex h-auto w-full flex-wrap gap-1.5 rounded-xl border border-[rgba(41,47,82,0.7)] bg-[rgba(41,47,82,0.4)] p-1.5">
-            <TabsTrigger
-              value="teams"
-              className="flex min-w-[140px] flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium text-white/60 transition-all hover:text-white data-[state=active]:bg-secondary-200 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-orange-500/20"
-            >
-              <Users className="h-4 w-4 shrink-0" />
-              <span>Teams & Attendance</span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="prasangas"
-              className="flex min-w-[140px] flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium text-white/60 transition-all hover:text-white data-[state=active]:bg-secondary-200 data-[state=active]:text-white"
-            >
-              <Users className="h-4 w-4 shrink-0" />
-              <span>Prasangas ({prasangas?.length ?? 0})</span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="colleges"
-              className="flex min-w-[120px] flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium text-white/60 transition-all hover:text-white data-[state=active]:bg-secondary-200 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-orange-500/20"
-            >
-              <Building2 className="h-4 w-4 shrink-0" />
-              <span>Colleges ({totalColleges})</span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="admins"
-              className="flex min-w-[140px] flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium text-white/60 transition-all hover:text-white data-[state=active]:bg-secondary-200 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-orange-500/20"
-            >
-              <ShieldCheck className="h-4 w-4 shrink-0" />
-              <span>Admin Accounts</span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="judges"
-              className="flex min-w-[120px] flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium text-white/60 transition-all hover:text-white data-[state=active]:bg-secondary-200 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-orange-500/20"
-            >
-              <Award className="h-4 w-4 shrink-0" />
-              <span>Judges ({totalJudgesCount})</span>
-            </TabsTrigger>
+          <TabsList className="admin-nav" aria-label="Admin sections">
+            {sections.map((section) => (
+              <TabsTrigger
+                key={section.id}
+                value={section.id}
+                className="admin-nav__item"
+              >
+                <section.icon size={18} aria-hidden="true" />
+                <span>{section.label}</span>
+                <span className="admin-count">{section.count}</span>
+              </TabsTrigger>
+            ))}
           </TabsList>
+          <div className="admin-rail__links">
+            <Link href="/admin/leaderboard">
+              <Award size={16} aria-hidden="true" /> Leaderboard{" "}
+              <ExternalLink size={14} aria-hidden="true" />
+            </Link>
+          </div>
+          <div className="admin-formation">
+            <div className="flex items-center justify-between gap-3">
+              <Label htmlFor="team-formation">Team formation</Label>
+              <Switch
+                id="team-formation"
+                aria-describedby="team-formation-help"
+                checked={competitionSettings?.allowTeamFormation ?? false}
+                disabled={
+                  setTeamFormationMutation.isPending ||
+                  !competitionSettings ||
+                  settingsQuery.isError
+                }
+                onCheckedChange={(allowTeamFormation) =>
+                  setTeamFormationMutation.mutate({ allowTeamFormation })
+                }
+              />
+            </div>
+            <p className="admin-formation__status" role="status">
+              {setTeamFormationMutation.isPending
+                ? "Saving…"
+                : settingsQuery.isError
+                  ? "Unavailable"
+                  : !competitionSettings
+                    ? "Loading…"
+                    : competitionSettings.allowTeamFormation
+                      ? "Open for team leads"
+                      : "Closed for team leads"}
+            </p>
+            <p id="team-formation-help" className="admin-muted">
+              Controls whether team leads can enter character details.
+            </p>
+            {settingsQuery.isError && (
+              <Button
+                className="admin-button mt-3"
+                size="sm"
+                onClick={() => void settingsQuery.refetch()}
+              >
+                Retry setting
+              </Button>
+            )}
+          </div>
+          <p className="admin-rail__note">
+            Event administration
+            <br />
+            Yakshagavishti 2026
+          </p>
+        </aside>
+        <main id="admin-content" className="admin-main" tabIndex={-1}>
+          <div className="admin-page-heading">
+            <div>
+              <h2>
+                {activeTab === "teams"
+                  ? "Teams & attendance"
+                  : currentSection.label === "Admins"
+                    ? "Admin accounts"
+                    : currentSection.label}
+              </h2>
+              <p>{currentSection.description}</p>
+            </div>
+            {activeTab === "teams" && (
+              <Button
+                onClick={downloadPDF}
+                disabled={!teams?.some((team) => team.isComplete)}
+                title="Export completed team registrations"
+                className="admin-button"
+              >
+                <Download size={16} /> Export teams
+              </Button>
+            )}
+          </div>
+          {activeTab === "teams" && (
+            <div
+              className="admin-review-strip"
+              aria-label="Team review shortcuts"
+            >
+              {[
+                { id: "all", label: "Registered", count: totalTeams },
+                {
+                  id: "verification",
+                  label: "IDs pending",
+                  count: pendingVerification,
+                },
+                {
+                  id: "attendance",
+                  label: "Check-in pending",
+                  count: pendingAttendance,
+                },
+                {
+                  id: "unassigned",
+                  label: "Unassigned",
+                  count: unassignedTeams,
+                },
+              ].map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  aria-pressed={teamFilter === item.id && !prasangaFilter}
+                  onClick={() => {
+                    setTeamFilter(item.id);
+                    setTeamSearch("");
+                    setPrasangaFilter("");
+                  }}
+                  className="admin-review-stat"
+                >
+                  <span>{item.label}</span>
+                  <strong>{item.count}</strong>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {activeQuery.isPending && (
+            <div role="status" className="admin-notice mb-6 justify-center">
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />{" "}
+              Loading {activeTab}…
+            </div>
+          )}
+          {activeQuery.isError && (
+            <div
+              role="alert"
+              className="admin-notice admin-error mb-6 flex-wrap justify-between"
+            >
+              <span>
+                Could not load {activeTab}. {activeQuery.error.message}
+              </span>
+              <Button
+                variant="ghost"
+                className="admin-button"
+                disabled={activeQuery.isFetching}
+                onClick={() => void activeQuery.refetch()}
+              >
+                <RefreshCw className="mr-2 h-4 w-4" />
+                {activeQuery.isFetching ? "Retrying…" : "Try again"}
+              </Button>
+            </div>
+          )}
 
           {/* ==================== TAB 1: TEAMS ==================== */}
           <TabsContent value="teams" className="space-y-6">
-            <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-              <div className="relative w-full sm:w-80">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+            <div className="admin-toolbar">
+              <div className="admin-search">
+                <Search size={16} aria-hidden="true" />
                 <Input
                   type="text"
-                  placeholder="Search teams or colleges..."
+                  aria-label="Search teams, colleges, leaders or prasangas"
+                  placeholder="Search teams, colleges, leaders…"
                   value={teamSearch}
                   onChange={(e) => setTeamSearch(e.target.value)}
                   className="rounded-xl border-[rgba(41,47,82,0.7)] bg-[rgba(41,47,82,0.4)] pl-9 text-white placeholder:text-white/30 focus:border-secondary-200 focus:ring-secondary-200"
                 />
               </div>
-              <span className="text-xs text-white/40">
-                Showing {filteredTeams?.length ?? 0} of {totalTeams} teams
-              </span>
+              <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
+                <AdminSelect
+                  label="Filter teams by status"
+                  value={teamFilter}
+                  onValueChange={setTeamFilter}
+                  className="admin-status-select"
+                  options={[
+                    { value: "all", label: "All teams" },
+                    { value: "attendance", label: "Pending attendance" },
+                    { value: "verification", label: "Pending ID verification" },
+                    { value: "unassigned", label: "No prasanga assigned" },
+                  ]}
+                />
+                <span className="admin-muted" role="status">
+                  {teams
+                    ? `Showing ${filteredTeams?.length ?? 0} of ${totalTeams} teams`
+                    : "Loading teams…"}
+                </span>
+              </div>
             </div>
 
-            <div className="space-y-6">
-              {filteredTeams?.map((element) => (
-                <div
-                  key={element.id}
-                  className="space-y-4 rounded-2xl border border-[rgba(41,47,82,0.55)] bg-[rgba(41,47,82,0.25)] p-5 shadow-lg transition-colors hover:border-secondary-200/30 sm:p-6"
+            {(teamSearch || teamFilter !== "all" || prasangaFilter) && (
+              <div className="flex flex-wrap items-center gap-3 text-sm text-white/70">
+                {prasangaFilter && (
+                  <span>
+                    Prasanga:{" "}
+                    {prasangas?.find(
+                      (prasanga) => prasanga.id === prasangaFilter,
+                    )?.name ?? "Selected prasanga"}
+                  </span>
+                )}
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    setTeamSearch("");
+                    setTeamFilter("all");
+                    setPrasangaFilter("");
+                  }}
+                  className="admin-button admin-button--quiet"
                 >
-                  {/* Team Top Card Header */}
-                  <div className="flex flex-col justify-between gap-4 border-b border-[rgba(41,47,82,0.7)] pb-4 md:flex-row md:items-center">
-                    <div>
-                      <div className="flex flex-wrap items-center gap-3">
-                        <h2 className="flex items-center gap-2 text-xl font-bold text-white sm:text-2xl">
-                          Team: {element.name}
-                          <button
-                            onClick={() => {
-                              setEditingTeam({
-                                id: element.id,
-                                name: element.name,
-                              });
-                              setNewTeamName(element.name);
-                            }}
-                            className="rounded p-1 text-white/40 transition-colors hover:text-secondary-100"
-                            title="Edit Team Name"
-                          >
-                            <Edit2 className="h-4 w-4" />
-                          </button>
-                        </h2>
+                  Clear filters
+                </Button>
+              </div>
+            )}
 
-                        {element.attended ? (
-                          <span className="flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400">
-                            <CheckCircle2 className="h-3.5 w-3.5" /> All Present
-                          </span>
-                        ) : (
-                          <span className="rounded-full border border-[rgba(41,47,82,0.7)] bg-[rgba(41,47,82,0.5)] px-3 py-1 text-xs font-medium text-white/50">
-                            Pending Attendance
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="mt-1 flex flex-wrap gap-4 text-sm text-white/50">
-                        <span>
-                          <strong className="text-white/70">College:</strong>{" "}
-                          {element.College?.name ?? "Unassigned"}
-                        </span>
-                        <span>
-                          <strong className="text-white/70">Prasanga:</strong>{" "}
-                          {element.Prasanga?.name ?? "Not assigned"}
-                        </span>
-                        {element.Leader?.name && (
-                          <span>
-                            <strong className="text-white/70">Leader:</strong>{" "}
-                            {element.Leader.name}
-                          </span>
-                        )}
-                        <select
-                          value={element.Prasanga?.id ?? ""}
-                          onChange={(event) => {
-                            const prasangaId = event.target.value;
-                            if (
-                              !prasangaId ||
-                              !confirm(
-                                "Changing the prasanga will reset this team's character details, verification, attendance, and scores. Continue?",
-                              )
-                            )
-                              return;
-                            assignPrasangaMutation.mutate(
-                              { teamId: element.id, prasangaId },
-                              {
-                                onSuccess: () => {
-                                  void refetchTeams();
-                                  void refetchPrasangas();
-                                },
-                                onError: (error) => alert(error.message),
-                              },
-                            );
-                          }}
-                          className="rounded-lg border border-white/20 bg-slate-900 px-2 py-1 text-sm text-white"
-                        >
-                          <option value="">Assign prasanga</option>
-                          {prasangas?.map((prasanga) => (
-                            <option key={prasanga.id} value={prasanga.id}>
-                              {prasanga.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-
-                    {element.editRequested && (
-                      <div className="flex items-center gap-3 rounded-xl border border-[rgba(41,47,82,0.8)] bg-[rgba(41,47,82,0.5)] px-4 py-2">
-                        <Label
-                          htmlFor={`edit-access-${element.id}`}
-                          className="cursor-pointer text-sm font-medium text-white/80"
-                        >
-                          Allow Edit Access
-                        </Label>
-                        <Switch
-                          checked={element.editRequested && !element.isComplete}
-                          onCheckedChange={() => setEditAccess(element.id)}
-                          id={`edit-access-${element.id}`}
-                        />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Team Leader Section */}
-                  {(() => {
-                    const leaderMember = element.TeamMembers.find(
-                      (m) => m.characterId === null && !m.characterName,
+            <div className="space-y-6">
+              {filteredTeams?.map((team) => (
+                <TeamReviewCard
+                  key={team.id}
+                  team={team}
+                  prasangas={prasangas}
+                  assignmentDisabled={
+                    assignPrasangaMutation.isPending ||
+                    !prasangas ||
+                    prasangasQuery.isError
+                  }
+                  editAccessPending={editTeamAccessMutation.isPending}
+                  verificationPending={verifyIdMutation.isPending}
+                  attendancePending={markAttendanceMutation.isPending}
+                  verifyingId={verifyingId}
+                  markingAttendance={markingAttendance}
+                  onEditName={() => {
+                    setEditingTeam({ id: team.id, name: team.name });
+                    setNewTeamName(team.name);
+                  }}
+                  onAssignPrasanga={(prasangaId) => {
+                    if (
+                      !prasangaId ||
+                      prasangaId === team.Prasanga?.id ||
+                      !confirm(
+                        "Changing the prasanga will reset this team's character details, verification, attendance, and scores. Continue?",
+                      )
+                    )
+                      return;
+                    assignPrasangaMutation.mutate(
+                      { teamId: team.id, prasangaId },
+                      {
+                        onSuccess: () => {
+                          void refetchTeams();
+                          void refetchPrasangas();
+                        },
+                        onError: (error) => alert(error.message),
+                      },
                     );
-                    if (!leaderMember) return null;
-                    return (
-                      <div className="mb-4 rounded-xl border border-secondary-200/30 bg-secondary-200/5 p-3.5">
-                        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-2.5">
-                          <div className="flex items-center gap-2">
-                            <span className="rounded-md border border-secondary-100/40 bg-secondary-100/20 px-2 py-0.5 text-xs font-semibold text-secondary-100">
-                              Team Leader
-                            </span>
-                            <span className="text-xs text-white/50">
-                              Character:{" "}
-                              <span className="font-medium text-white/80">
-                                N/A
-                              </span>
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {leaderMember.idURL && (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setSelectedImage(leaderMember.idURL)
-                                }
-                                className="inline-flex items-center gap-1.5 rounded-lg border border-secondary-200/20 bg-secondary-200/10 px-2.5 py-1 text-xs text-secondary-100 transition-all hover:text-secondary-200"
-                              >
-                                <ExternalLink className="h-3.5 w-3.5" /> View ID
-                                Card
-                              </button>
-                            )}
-
-                            {!leaderMember.isIdVerified ? (
-                              <Button
-                                size="sm"
-                                onClick={() => verifyId(leaderMember.id)}
-                                disabled={
-                                  verifyingId === leaderMember.id &&
-                                  verifyIdMutation.isPending
-                                }
-                                className="border border-[rgba(41,47,82,0.8)] bg-[rgba(41,47,82,0.7)] text-xs text-white hover:bg-[rgba(41,47,82,1)]"
-                              >
-                                {verifyingId === leaderMember.id &&
-                                verifyIdMutation.isPending ? (
-                                  <ImSpinner9 className="h-3 w-3 animate-spin" />
-                                ) : (
-                                  "Verify ID"
-                                )}
-                              </Button>
-                            ) : (
-                              <span className="rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-400">
-                                Verified ✓
-                              </span>
-                            )}
-
-                            {!leaderMember.isAttended ? (
-                              <Button
-                                size="sm"
-                                onClick={() =>
-                                  markAttendance(leaderMember.id, element.id)
-                                }
-                                disabled={
-                                  markingAttendance === leaderMember.id &&
-                                  markAttendanceMutation.isPending
-                                }
-                                className="bg-blue-600 text-xs text-white hover:bg-blue-500"
-                              >
-                                {markingAttendance === leaderMember.id &&
-                                markAttendanceMutation.isPending ? (
-                                  <ImSpinner9 className="h-3 w-3 animate-spin" />
-                                ) : (
-                                  "Mark Present"
-                                )}
-                              </Button>
-                            ) : (
-                              <span className="rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-400">
-                                Present ✓
-                              </span>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="mt-2.5 flex flex-wrap items-center gap-6 text-sm">
-                          <div>
-                            <span className="text-xs text-white/50">
-                              Leader Name:{" "}
-                            </span>
-                            <span className="font-semibold text-white/90">
-                              {leaderMember.name}
-                            </span>
-                          </div>
-                          {leaderMember.contact && (
-                            <div>
-                              <span className="text-xs text-white/50">
-                                Phone:{" "}
-                              </span>
-                              <span className="font-semibold text-white/90">
-                                {leaderMember.contact}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })()}
-
-                  {/* Team Members Table */}
-                  <div className="overflow-x-auto">
-                    <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-white/60">
-                      Prasanga Characters & Cast
-                    </p>
-                    <Table className="w-full">
-                      <TableHeader className="bg-[rgba(8,11,30,0.5)]">
-                        <TableRow className="border-[rgba(41,47,82,0.5)] hover:bg-transparent">
-                          <TableHead className="font-semibold text-white/50">
-                            Participant Name
-                          </TableHead>
-                          <TableHead className="font-semibold text-white/50">
-                            Character
-                          </TableHead>
-                          <TableHead className="text-center font-semibold text-white/50">
-                            ID Card Proof
-                          </TableHead>
-                          <TableHead className="text-right font-semibold text-white/50">
-                            Verification
-                          </TableHead>
-                          <TableHead className="text-right font-semibold text-white/50">
-                            Attendance
-                          </TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {(() => {
-                          const characterMembers = element.TeamMembers.filter(
-                            (m) =>
-                              Boolean(
-                                m.characterName ?? m.characterId !== null,
-                              ),
-                          );
-                          if (characterMembers.length === 0) {
-                            return (
-                              <TableRow className="border-[rgba(41,47,82,0.4)]">
-                                <TableCell
-                                  colSpan={5}
-                                  className="py-6 text-center text-sm text-white/40"
-                                >
-                                  No character members registered yet.
-                                </TableCell>
-                              </TableRow>
-                            );
-                          }
-                          return characterMembers.map((member) => (
-                            <TableRow
-                              key={member.id}
-                              className="border-[rgba(41,47,82,0.4)] hover:bg-[rgba(41,47,82,0.2)]"
-                            >
-                              <TableCell className="font-medium text-white/90">
-                                {member.name}
-                                {member.contact && (
-                                  <span className="mt-0.5 block text-xs text-white/40">
-                                    {member.contact}
-                                  </span>
-                                )}
-                              </TableCell>
-
-                              <TableCell className="text-sm font-medium text-secondary-100">
-                                {member.characterName ??
-                                  member.Character?.character ??
-                                  "N/A"}
-                                <button
-                                  type="button"
-                                  className="ml-2 text-xs text-white/60 underline hover:text-white"
-                                  onClick={() => {
-                                    const value = window.prompt(
-                                      "Character name",
-                                      member.characterName ??
-                                        member.Character?.character ??
-                                        "",
-                                    );
-                                    if (!value?.trim()) return;
-                                    updateTeamMemberCharacterMutation.mutate(
-                                      {
-                                        id: member.id,
-                                        characterName: value.trim(),
-                                      },
-                                      {
-                                        onSuccess: () => void refetchTeams(),
-                                        onError: (error) =>
-                                          alert(error.message),
-                                      },
-                                    );
-                                  }}
-                                >
-                                  Edit
-                                </button>
-                              </TableCell>
-
-                              <TableCell className="text-center">
-                                {member.idURL ? (
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      setSelectedImage(member.idURL)
-                                    }
-                                    className="inline-flex items-center gap-1.5 rounded-lg border border-secondary-200/20 bg-secondary-200/10 px-3 py-1.5 text-xs text-secondary-100 transition-all hover:text-secondary-200"
-                                  >
-                                    <ExternalLink className="h-3.5 w-3.5" />{" "}
-                                    View ID Card
-                                  </button>
-                                ) : (
-                                  <span className="text-xs text-white/30">
-                                    No Image
-                                  </span>
-                                )}
-                              </TableCell>
-
-                              <TableCell className="text-right">
-                                {!member.isIdVerified ? (
-                                  <Button
-                                    size="sm"
-                                    onClick={() => verifyId(member.id)}
-                                    disabled={
-                                      verifyingId === member.id &&
-                                      verifyIdMutation.isPending
-                                    }
-                                    className="border border-[rgba(41,47,82,0.8)] bg-[rgba(41,47,82,0.7)] text-xs text-white hover:bg-[rgba(41,47,82,1)]"
-                                  >
-                                    {verifyingId === member.id &&
-                                    verifyIdMutation.isPending ? (
-                                      <ImSpinner9 className="h-3 w-3 animate-spin" />
-                                    ) : (
-                                      "Verify ID"
-                                    )}
-                                  </Button>
-                                ) : (
-                                  <span className="rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-400">
-                                    Verified ✓
-                                  </span>
-                                )}
-                              </TableCell>
-
-                              <TableCell className="text-right">
-                                {!member.isAttended ? (
-                                  <Button
-                                    size="sm"
-                                    onClick={() =>
-                                      markAttendance(member.id, element.id)
-                                    }
-                                    disabled={
-                                      markingAttendance === member.id &&
-                                      markAttendanceMutation.isPending
-                                    }
-                                    className="bg-blue-600 text-xs text-white hover:bg-blue-500"
-                                  >
-                                    {markingAttendance === member.id &&
-                                    markAttendanceMutation.isPending ? (
-                                      <ImSpinner9 className="h-3 w-3 animate-spin" />
-                                    ) : (
-                                      "Mark Present"
-                                    )}
-                                  </Button>
-                                ) : (
-                                  <span className="rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-400">
-                                    Present ✓
-                                  </span>
-                                )}
-                              </TableCell>
-                            </TableRow>
-                          ));
-                        })()}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </div>
+                  }}
+                  onEditAccess={() => setEditAccess(team.id)}
+                  onVerify={verifyId}
+                  onAttend={(memberId) => markAttendance(memberId, team.id)}
+                  onViewId={setSelectedImage}
+                  onEditCharacter={(member) =>
+                    setEditingCharacter({
+                      id: member.id,
+                      name: member.name,
+                      characterName:
+                        member.characterName ??
+                        member.Character?.character ??
+                        "",
+                    })
+                  }
+                />
               ))}
 
               {filteredTeams?.length === 0 && (
-                <div className="rounded-xl border border-[rgba(41,47,82,0.4)] bg-[rgba(41,47,82,0.15)] py-12 text-center text-white/40">
-                  No teams matched your search.
+                <div className="admin-empty">
+                  {teams?.length
+                    ? "No teams match these filters. Clear the filters or try another search."
+                    : "No teams registered yet. Registered teams will appear here."}
                 </div>
               )}
             </div>
@@ -1071,115 +901,25 @@ export default function Admin() {
 
           {/* ==================== TAB: PRASANGAS ==================== */}
           <TabsContent value="prasangas" className="space-y-6">
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <Input
-                value={newPrasangaName}
-                onChange={(e) => setNewPrasangaName(e.target.value)}
-                placeholder="New prasanga name"
-                className="rounded-xl bg-white/10 text-white"
-              />
-              <Button
-                onClick={() => {
-                  if (!newPrasangaName.trim()) return;
-                  createPrasangaMutation.mutate(
-                    { name: newPrasangaName.trim() },
-                    {
-                      onSuccess: () => {
-                        setNewPrasangaName("");
-                        void refetchPrasangas();
-                      },
-                      onError: (e) => alert(e.message),
-                    },
-                  );
-                }}
-                className="bg-secondary-200"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Create Prasanga
-              </Button>
-            </div>
-            <div className="grid gap-4 md:grid-cols-2">
-              {prasangas?.map((prasanga) => (
-                <div
-                  key={prasanga.id}
-                  className="rounded-2xl border border-[rgba(41,47,82,0.55)] bg-[rgba(41,47,82,0.25)] p-5"
-                >
-                  <h2 className="text-xl font-bold">{prasanga.name}</h2>
-                  <p className="mt-1 text-sm text-white/50">
-                    {prasanga._count.teams} assigned team(s)
-                  </p>
-                  <div className="mt-4 space-y-2">
-                    {prasanga.characters.map((character) => (
-                      <div
-                        key={character.id}
-                        className="flex items-center justify-between rounded-lg bg-black/20 px-3 py-2"
-                      >
-                        <span>{character.character}</span>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() =>
-                            deleteCharacterMutation.mutate(
-                              { id: character.id },
-                              {
-                                onSuccess: () => void refetchPrasangas(),
-                                onError: (e) => alert(e.message),
-                              },
-                            )
-                          }
-                        >
-                          <Trash2 className="h-4 w-4 text-red-400" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="mt-4 flex gap-2">
-                    <Input
-                      value={newCharacterNames[prasanga.id] ?? ""}
-                      onChange={(e) =>
-                        setNewCharacterNames((current) => ({
-                          ...current,
-                          [prasanga.id]: e.target.value,
-                        }))
-                      }
-                      placeholder="Character name"
-                      className="bg-white/10 text-white"
-                    />
-                    <Button
-                      onClick={() => {
-                        const character =
-                          newCharacterNames[prasanga.id]?.trim();
-                        if (!character) return;
-                        createCharacterMutation.mutate(
-                          { prasangaId: prasanga.id, character },
-                          {
-                            onSuccess: () => {
-                              setNewCharacterNames((current) => ({
-                                ...current,
-                                [prasanga.id]: "",
-                              }));
-                              void refetchPrasangas();
-                            },
-                            onError: (e) => alert(e.message),
-                          },
-                        );
-                      }}
-                    >
-                      Add
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <PrasangaSection
+              prasangas={prasangas}
+              onViewTeams={(prasangaId) => {
+                setPrasangaFilter(prasangaId);
+                setTeamSearch("");
+                setTeamFilter("all");
+                setActiveTab("teams");
+              }}
+            />
           </TabsContent>
 
           {/* ==================== TAB 2: COLLEGES ==================== */}
           <TabsContent value="colleges" className="space-y-6">
-            <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-              <div className="relative w-full sm:w-80">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+            <div className="admin-toolbar">
+              <div className="admin-search">
+                <Search size={16} aria-hidden="true" />
                 <Input
                   type="text"
+                  aria-label="Search colleges"
                   placeholder="Search colleges..."
                   value={collegeSearch}
                   onChange={(e) => setCollegeSearch(e.target.value)}
@@ -1196,19 +936,20 @@ export default function Admin() {
                   });
                   setCollegeModalOpen(true);
                 }}
-                className="flex w-full items-center gap-2 rounded-xl border border-purple-500/30 bg-[rgba(48,21,75,0.8)] px-4 py-2 font-medium text-white hover:bg-[rgba(48,21,75,1)] sm:w-auto"
+                className="admin-button admin-button--primary"
               >
-                <Plus className="h-4 w-4" /> Add New College
+                <Plus size={16} /> Add college
               </Button>
             </div>
 
-            <div className="overflow-hidden rounded-2xl border border-[rgba(41,47,82,0.5)] bg-[rgba(41,47,82,0.2)] shadow-lg">
-              <Table>
-                <TableHeader className="bg-[rgba(8,11,30,0.5)]">
-                  <TableRow className="border-[rgba(41,47,82,0.5)]">
-                    <TableHead className="font-semibold text-white/50">
-                      College Name
-                    </TableHead>
+            <p className="admin-directory-hint">
+              Scroll the table sideways to see all details and actions.
+            </p>
+            <div className="admin-directory">
+              <Table aria-label="Participating colleges">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>College name</TableHead>
                     <TableHead className="font-semibold text-white/50">
                       Details / Code
                     </TableHead>
@@ -1262,6 +1003,7 @@ export default function Admin() {
                             });
                             setCollegeModalOpen(true);
                           }}
+                          aria-label={`Edit ${college.name}`}
                           className="text-white/60 hover:bg-[rgba(41,47,82,0.5)] hover:text-secondary-100"
                         >
                           <Edit2 className="h-3.5 w-3.5" />
@@ -1270,6 +1012,8 @@ export default function Admin() {
                         <Button
                           size="sm"
                           variant="ghost"
+                          aria-label={`Delete ${college.name}`}
+                          disabled={deleteCollegeMutation.isPending}
                           onClick={() => handleDeleteCollege(college.id)}
                           className="text-white/40 hover:bg-[rgba(41,47,82,0.5)] hover:text-red-400"
                         >
@@ -1296,25 +1040,21 @@ export default function Admin() {
 
           {/* ==================== TAB 3: ADMIN ACCOUNTS ==================== */}
           <TabsContent value="admins" className="space-y-6">
-            <div className="flex items-start gap-3 rounded-xl border border-secondary-200/20 bg-secondary-200/10 p-4">
-              <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-secondary-100" />
-              <div className="text-sm text-white/70">
-                <strong className="block font-semibold text-secondary-100">
-                  Google OAuth Authentication Provisioning
-                </strong>
-                Enter the email address of the person you want to authorize as
-                an Admin. If they haven&apos;t logged in yet, a pre-registered
-                account will be created. When they sign in with Google using
-                that email, they will automatically be granted full Admin
-                permissions.
+            <div className="admin-notice">
+              <ShieldAlert size={18} aria-hidden="true" />
+              <div>
+                <strong>Admin access grants full control</strong>Add their
+                Google email address. They’ll receive admin access when they
+                sign in with that account, even if they haven’t registered yet.
               </div>
             </div>
 
-            <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-              <div className="relative w-full sm:w-80">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+            <div className="admin-toolbar">
+              <div className="admin-search">
+                <Search size={16} aria-hidden="true" />
                 <Input
                   type="text"
+                  aria-label="Search admin accounts"
                   placeholder="Search admin accounts..."
                   value={adminSearch}
                   onChange={(e) => setAdminSearch(e.target.value)}
@@ -1324,19 +1064,20 @@ export default function Admin() {
 
               <Button
                 onClick={() => setAdminModalOpen(true)}
-                className="flex w-full items-center gap-2 rounded-xl bg-secondary-200 px-4 py-2 font-semibold text-white hover:bg-orange-600 sm:w-auto"
+                className="admin-button admin-button--primary"
               >
-                <UserPlus className="h-4 w-4" /> Add Admin Account
+                <UserPlus size={16} /> Add admin
               </Button>
             </div>
 
-            <div className="overflow-hidden rounded-2xl border border-[rgba(41,47,82,0.5)] bg-[rgba(41,47,82,0.2)] shadow-lg">
-              <Table>
-                <TableHeader className="bg-[rgba(8,11,30,0.5)]">
-                  <TableRow className="border-[rgba(41,47,82,0.5)]">
-                    <TableHead className="font-semibold text-white/50">
-                      Admin User
-                    </TableHead>
+            <p className="admin-directory-hint">
+              Scroll the table sideways to see all details and actions.
+            </p>
+            <div className="admin-directory">
+              <Table aria-label="Admin accounts">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Admin</TableHead>
                     <TableHead className="font-semibold text-white/50">
                       Email Address
                     </TableHead>
@@ -1385,7 +1126,10 @@ export default function Admin() {
                           onClick={() =>
                             handleRemoveAdmin(admin.id, admin.name)
                           }
-                          disabled={admin.id === sessionData?.user?.id}
+                          disabled={
+                            admin.id === sessionData?.user?.id ||
+                            removeAdminMutation.isPending
+                          }
                           className="text-white/40 hover:bg-[rgba(41,47,82,0.5)] hover:text-red-400 disabled:opacity-30"
                           title={
                             admin.id === sessionData?.user?.id
@@ -1416,23 +1160,21 @@ export default function Admin() {
 
           {/* ==================== TAB 4: JUDGES ==================== */}
           <TabsContent value="judges" className="space-y-6">
-            <div className="flex items-start gap-3 rounded-xl border border-purple-500/20 bg-[rgba(48,21,75,0.4)] p-4">
-              <Award className="mt-0.5 h-5 w-5 shrink-0 text-purple-300" />
-              <div className="text-sm text-white/70">
-                <strong className="block font-semibold text-purple-300">
-                  Jury Access Management
-                </strong>
-                Enter the email address of a judge. When they log in via Google
-                OAuth, they will automatically receive the JUDGE role and access
-                the scoring panel.
+            <div className="admin-notice">
+              <Award size={18} aria-hidden="true" />
+              <div>
+                <strong>Give judges access to scoring</strong>Add their Google
+                email address. They’ll receive jury access when they sign in
+                with that account.
               </div>
             </div>
 
-            <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-              <div className="relative w-full sm:w-80">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+            <div className="admin-toolbar">
+              <div className="admin-search">
+                <Search size={16} aria-hidden="true" />
                 <Input
                   type="text"
+                  aria-label="Search judges"
                   placeholder="Search judges..."
                   value={judgeSearch}
                   onChange={(e) => setJudgeSearch(e.target.value)}
@@ -1442,19 +1184,20 @@ export default function Admin() {
 
               <Button
                 onClick={() => setJudgeModalOpen(true)}
-                className="flex w-full items-center gap-2 rounded-xl border border-purple-500/30 bg-[rgba(48,21,75,0.8)] px-4 py-2 font-medium text-white hover:bg-[rgba(48,21,75,1)] sm:w-auto"
+                className="admin-button admin-button--primary"
               >
-                <UserPlus className="h-4 w-4" /> Add Judge Account
+                <UserPlus size={16} /> Add judge
               </Button>
             </div>
 
-            <div className="overflow-hidden rounded-2xl border border-[rgba(41,47,82,0.5)] bg-[rgba(41,47,82,0.2)] shadow-lg">
-              <Table>
-                <TableHeader className="bg-[rgba(8,11,30,0.5)]">
-                  <TableRow className="border-[rgba(41,47,82,0.5)]">
-                    <TableHead className="font-semibold text-white/50">
-                      Judge Name
-                    </TableHead>
+            <p className="admin-directory-hint">
+              Scroll the table sideways to see all details and actions.
+            </p>
+            <div className="admin-directory">
+              <Table aria-label="Jury accounts">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Judge</TableHead>
                     <TableHead className="font-semibold text-white/50">
                       Email Address
                     </TableHead>
@@ -1503,6 +1246,7 @@ export default function Admin() {
                           onClick={() =>
                             handleRemoveJudge(judge.userId, judge.User.name)
                           }
+                          disabled={removeJudgeMutation.isPending}
                           className="text-white/40 hover:bg-[rgba(41,47,82,0.5)] hover:text-red-400"
                         >
                           <XCircle className="mr-1 h-4 w-4" /> Remove Judge
@@ -1525,17 +1269,27 @@ export default function Admin() {
               </Table>
             </div>
           </TabsContent>
-        </Tabs>
-      </div>
+          <footer className="admin-footer">
+            <span>Yakshagavishti 2026</span>
+            <span>
+              {activeTab === "teams"
+                ? `${attendedTeams} of ${totalTeams} teams present`
+                : "Administration workspace"}
+            </span>
+          </footer>
+        </main>
+      </Tabs>
 
       {/* ==================== MODALS ==================== */}
 
       {/* 1. Edit Team Name Dialog */}
       <Dialog
         open={!!editingTeam}
-        onOpenChange={(open) => !open && setEditingTeam(null)}
+        onOpenChange={(open) =>
+          !open && !updateTeamNameMutation.isPending && setEditingTeam(null)
+        }
       >
-        <DialogContent className="border-[rgba(41,47,82,0.7)] bg-[#0d1128] text-white sm:max-w-md">
+        <DialogContent className="admin-dialog sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Edit Team Name</DialogTitle>
             <DialogDescription className="text-white/50">
@@ -1543,29 +1297,40 @@ export default function Admin() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 py-2">
+          <form
+            id="edit-team-form"
+            onSubmit={(event) => {
+              event.preventDefault();
+              handleUpdateTeamName();
+            }}
+            className="space-y-4 py-2"
+          >
             <div className="space-y-2">
               <Label htmlFor="team-name">New Team Name</Label>
               <Input
                 id="team-name"
+                required
+                disabled={updateTeamNameMutation.isPending}
                 value={newTeamName}
                 onChange={(e) => setNewTeamName(e.target.value)}
                 placeholder="Enter new team name"
                 className="border-[rgba(41,47,82,0.8)] bg-[rgba(41,47,82,0.5)] text-white placeholder:text-white/30"
               />
             </div>
-          </div>
+          </form>
 
           <DialogFooter>
             <Button
               variant="ghost"
+              disabled={updateTeamNameMutation.isPending}
               onClick={() => setEditingTeam(null)}
               className="text-white/60 hover:bg-[rgba(41,47,82,0.5)] hover:text-white"
             >
               Cancel
             </Button>
             <Button
-              onClick={handleUpdateTeamName}
+              type="submit"
+              form="edit-team-form"
               disabled={updateTeamNameMutation.isPending || !newTeamName.trim()}
               className="bg-secondary-200 font-semibold text-white hover:bg-orange-600"
             >
@@ -1576,75 +1341,101 @@ export default function Admin() {
       </Dialog>
 
       {/* 2. College Add / Edit Dialog */}
-      <Dialog open={collegeModalOpen} onOpenChange={setCollegeModalOpen}>
-        <DialogContent className="border-slate-800 bg-slate-900 text-white sm:max-w-md">
+      <Dialog
+        open={collegeModalOpen}
+        onOpenChange={(open) => {
+          if (!addCollegeMutation.isPending && !updateCollegeMutation.isPending)
+            setCollegeModalOpen(open);
+        }}
+      >
+        <DialogContent className="admin-dialog sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {editingCollege?.id ? "Edit College" : "Add New College"}
+              {editingCollege?.id ? "Edit college" : "Add college"}
             </DialogTitle>
             <DialogDescription className="text-white/50">
               Provide the college details and login password.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <Label htmlFor="college-name">College Name</Label>
-              <Input
-                id="college-name"
-                value={editingCollege?.name ?? ""}
-                onChange={(e) =>
-                  setEditingCollege((prev) =>
-                    prev ? { ...prev, name: e.target.value } : null,
-                  )
-                }
-                placeholder="e.g. St Aloysius College, Mangalore"
-                className="border-[rgba(41,47,82,0.8)] bg-[rgba(41,47,82,0.5)] text-white placeholder:text-white/30"
-              />
-            </div>
+          <form
+            id="college-form"
+            onSubmit={(event) => {
+              event.preventDefault();
+              handleSaveCollege();
+            }}
+          >
+            <fieldset
+              disabled={
+                addCollegeMutation.isPending || updateCollegeMutation.isPending
+              }
+              className="space-y-4 py-2"
+            >
+              <div className="space-y-2">
+                <Label htmlFor="college-name">College Name</Label>
+                <Input
+                  id="college-name"
+                  required
+                  value={editingCollege?.name ?? ""}
+                  onChange={(e) =>
+                    setEditingCollege((prev) =>
+                      prev ? { ...prev, name: e.target.value } : null,
+                    )
+                  }
+                  placeholder="e.g. St Aloysius College, Mangalore"
+                  className="border-[rgba(41,47,82,0.8)] bg-[rgba(41,47,82,0.5)] text-white placeholder:text-white/30"
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="college-details">Details / Code (Optional)</Label>
-              <Input
-                id="college-details"
-                value={editingCollege?.details ?? ""}
-                onChange={(e) =>
-                  setEditingCollege((prev) =>
-                    prev ? { ...prev, details: e.target.value } : null,
-                  )
-                }
-                placeholder="Optional details"
-                className="border-[rgba(41,47,82,0.8)] bg-[rgba(41,47,82,0.5)] text-white placeholder:text-white/30"
-              />
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="college-details">
+                  Details / Code (Optional)
+                </Label>
+                <Input
+                  id="college-details"
+                  value={editingCollege?.details ?? ""}
+                  onChange={(e) =>
+                    setEditingCollege((prev) =>
+                      prev ? { ...prev, details: e.target.value } : null,
+                    )
+                  }
+                  placeholder="Optional details"
+                  className="border-[rgba(41,47,82,0.8)] bg-[rgba(41,47,82,0.5)] text-white placeholder:text-white/30"
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="college-password">College Password</Label>
-              <Input
-                id="college-password"
-                type="text"
-                value={editingCollege?.password ?? ""}
-                onChange={(e) =>
-                  setEditingCollege((prev) =>
-                    prev ? { ...prev, password: e.target.value } : null,
-                  )
-                }
-                placeholder="Login password"
-                className="font-mono border-[rgba(41,47,82,0.8)] bg-[rgba(41,47,82,0.5)] text-white placeholder:text-white/30"
-              />
-            </div>
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="college-password">College Password</Label>
+                <Input
+                  id="college-password"
+                  type="text"
+                  value={editingCollege?.password ?? ""}
+                  onChange={(e) =>
+                    setEditingCollege((prev) =>
+                      prev ? { ...prev, password: e.target.value } : null,
+                    )
+                  }
+                  placeholder="Login password"
+                  className="font-mono border-[rgba(41,47,82,0.8)] bg-[rgba(41,47,82,0.5)] text-white placeholder:text-white/30"
+                />
+              </div>
+            </fieldset>
+          </form>
 
           <DialogFooter>
             <Button
               variant="ghost"
+              disabled={
+                addCollegeMutation.isPending || updateCollegeMutation.isPending
+              }
               onClick={() => setCollegeModalOpen(false)}
               className="text-white/60 hover:bg-[rgba(41,47,82,0.5)] hover:text-white"
             >
               Cancel
             </Button>
             <Button
-              onClick={handleSaveCollege}
+              type="submit"
+              form="college-form"
               disabled={
                 addCollegeMutation.isPending ||
                 updateCollegeMutation.isPending ||
@@ -1661,50 +1452,70 @@ export default function Admin() {
       </Dialog>
 
       {/* 3. Add Admin Dialog */}
-      <Dialog open={adminModalOpen} onOpenChange={setAdminModalOpen}>
-        <DialogContent className="border-slate-800 bg-slate-900 text-white sm:max-w-md">
+      <Dialog
+        open={adminModalOpen}
+        onOpenChange={(open) => {
+          if (!addAdminMutation.isPending) setAdminModalOpen(open);
+        }}
+      >
+        <DialogContent className="admin-dialog sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Add Admin Account (Google OAuth)</DialogTitle>
+            <DialogTitle>Add admin account</DialogTitle>
             <DialogDescription className="text-white/50">
               Grant Admin privileges to an email address.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <Label htmlFor="admin-email">Google Email Address</Label>
-              <Input
-                id="admin-email"
-                type="email"
-                value={adminEmail}
-                onChange={(e) => setAdminEmail(e.target.value)}
-                placeholder="admin@example.com"
-                className="border-[rgba(41,47,82,0.8)] bg-[rgba(41,47,82,0.5)] text-white placeholder:text-white/30"
-              />
-            </div>
+          <form
+            id="admin-form"
+            onSubmit={(event) => {
+              event.preventDefault();
+              handleAddAdmin();
+            }}
+          >
+            <fieldset
+              disabled={addAdminMutation.isPending}
+              className="space-y-4 py-2"
+            >
+              <div className="space-y-2">
+                <Label htmlFor="admin-email">Google Email Address</Label>
+                <Input
+                  id="admin-email"
+                  required
+                  autoComplete="email"
+                  type="email"
+                  value={adminEmail}
+                  onChange={(e) => setAdminEmail(e.target.value)}
+                  placeholder="admin@example.com"
+                  className="border-[rgba(41,47,82,0.8)] bg-[rgba(41,47,82,0.5)] text-white placeholder:text-white/30"
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="admin-name">Display Name (Optional)</Label>
-              <Input
-                id="admin-name"
-                value={adminName}
-                onChange={(e) => setAdminName(e.target.value)}
-                placeholder="e.g. John Doe"
-                className="border-[rgba(41,47,82,0.8)] bg-[rgba(41,47,82,0.5)] text-white placeholder:text-white/30"
-              />
-            </div>
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="admin-name">Display Name (Optional)</Label>
+                <Input
+                  id="admin-name"
+                  value={adminName}
+                  onChange={(e) => setAdminName(e.target.value)}
+                  placeholder="Display name"
+                  className="border-[rgba(41,47,82,0.8)] bg-[rgba(41,47,82,0.5)] text-white placeholder:text-white/30"
+                />
+              </div>
+            </fieldset>
+          </form>
 
           <DialogFooter>
             <Button
               variant="ghost"
+              disabled={addAdminMutation.isPending}
               onClick={() => setAdminModalOpen(false)}
               className="text-white/60 hover:bg-[rgba(41,47,82,0.5)] hover:text-white"
             >
               Cancel
             </Button>
             <Button
-              onClick={handleAddAdmin}
+              type="submit"
+              form="admin-form"
               disabled={addAdminMutation.isPending || !adminEmail.trim()}
               className="bg-secondary-200 font-semibold text-white hover:bg-orange-600"
             >
@@ -1715,50 +1526,70 @@ export default function Admin() {
       </Dialog>
 
       {/* 4. Add Judge Dialog */}
-      <Dialog open={judgeModalOpen} onOpenChange={setJudgeModalOpen}>
-        <DialogContent className="border-slate-800 bg-slate-900 text-white sm:max-w-md">
+      <Dialog
+        open={judgeModalOpen}
+        onOpenChange={(open) => {
+          if (!addJudgeMutation.isPending) setJudgeModalOpen(open);
+        }}
+      >
+        <DialogContent className="admin-dialog sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Add Judge Account</DialogTitle>
+            <DialogTitle>Add judge account</DialogTitle>
             <DialogDescription className="text-white/50">
               Grant Judge permissions to a jury member&apos;s email address.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <Label htmlFor="judge-email">Google Email Address</Label>
-              <Input
-                id="judge-email"
-                type="email"
-                value={judgeEmail}
-                onChange={(e) => setJudgeEmail(e.target.value)}
-                placeholder="judge@example.com"
-                className="border-[rgba(41,47,82,0.8)] bg-[rgba(41,47,82,0.5)] text-white placeholder:text-white/30"
-              />
-            </div>
+          <form
+            id="judge-form"
+            onSubmit={(event) => {
+              event.preventDefault();
+              handleAddJudge();
+            }}
+          >
+            <fieldset
+              disabled={addJudgeMutation.isPending}
+              className="space-y-4 py-2"
+            >
+              <div className="space-y-2">
+                <Label htmlFor="judge-email">Google Email Address</Label>
+                <Input
+                  id="judge-email"
+                  required
+                  autoComplete="email"
+                  type="email"
+                  value={judgeEmail}
+                  onChange={(e) => setJudgeEmail(e.target.value)}
+                  placeholder="judge@example.com"
+                  className="border-[rgba(41,47,82,0.8)] bg-[rgba(41,47,82,0.5)] text-white placeholder:text-white/30"
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="judge-name">Judge Name (Optional)</Label>
-              <Input
-                id="judge-name"
-                value={judgeName}
-                onChange={(e) => setJudgeName(e.target.value)}
-                placeholder="e.g. Dr. Sharma"
-                className="border-[rgba(41,47,82,0.8)] bg-[rgba(41,47,82,0.5)] text-white placeholder:text-white/30"
-              />
-            </div>
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="judge-name">Judge Name (Optional)</Label>
+                <Input
+                  id="judge-name"
+                  value={judgeName}
+                  onChange={(e) => setJudgeName(e.target.value)}
+                  placeholder="e.g. Dr. Sharma"
+                  className="border-[rgba(41,47,82,0.8)] bg-[rgba(41,47,82,0.5)] text-white placeholder:text-white/30"
+                />
+              </div>
+            </fieldset>
+          </form>
 
           <DialogFooter>
             <Button
               variant="ghost"
+              disabled={addJudgeMutation.isPending}
               onClick={() => setJudgeModalOpen(false)}
               className="text-white/60 hover:bg-[rgba(41,47,82,0.5)] hover:text-white"
             >
               Cancel
             </Button>
             <Button
-              onClick={handleAddJudge}
+              type="submit"
+              form="judge-form"
               disabled={addJudgeMutation.isPending || !judgeEmail.trim()}
               className="border border-purple-500/30 bg-[rgba(48,21,75,0.9)] font-medium text-white hover:bg-[rgba(48,21,75,1)]"
             >
@@ -1768,31 +1599,112 @@ export default function Admin() {
         </DialogContent>
       </Dialog>
 
-      {/* 5. Full Screen Image Modal */}
-      {selectedImage && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
-          onClick={() => setSelectedImage(null)}
-        >
-          <button
-            className="absolute right-4 top-4 rounded-full border border-[rgba(41,47,82,0.7)] bg-[rgba(8,11,30,0.8)] p-2 text-white/70 transition-colors hover:text-white"
-            onClick={() => setSelectedImage(null)}
-            aria-label="Close"
+      <Dialog
+        open={!!editingCharacter}
+        onOpenChange={(open) => {
+          if (!open && !updateTeamMemberCharacterMutation.isPending)
+            setEditingCharacter(null);
+        }}
+      >
+        <DialogContent className="admin-dialog sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit character</DialogTitle>
+            <DialogDescription className="text-white/60">
+              Update the character played by {editingCharacter?.name}.
+            </DialogDescription>
+          </DialogHeader>
+          <form
+            className="space-y-4"
+            onSubmit={(event) => {
+              event.preventDefault();
+              if (
+                !editingCharacter?.characterName.trim() ||
+                updateTeamMemberCharacterMutation.isPending
+              )
+                return;
+              updateTeamMemberCharacterMutation.mutate(
+                {
+                  id: editingCharacter.id,
+                  characterName: editingCharacter.characterName.trim(),
+                },
+                {
+                  onSuccess: () => {
+                    setEditingCharacter(null);
+                    toast.success("Character updated");
+                    void refetchTeams();
+                  },
+                  onError: (error) => toast.error(error.message),
+                },
+              );
+            }}
           >
-            <X className="h-6 w-6" />
-          </button>
-          <div className="relative flex h-full max-h-[85vh] w-full max-w-5xl items-center justify-center">
-            <Image
-              src={selectedImage}
-              alt="Full size participant ID card"
-              fill
-              unoptimized
-              className="object-contain"
-              onClick={(e) => e.stopPropagation()}
-            />
+            <div className="space-y-2">
+              <Label htmlFor="edit-character-name">Character name</Label>
+              <Input
+                id="edit-character-name"
+                required
+                disabled={updateTeamMemberCharacterMutation.isPending}
+                value={editingCharacter?.characterName ?? ""}
+                onChange={(event) =>
+                  setEditingCharacter((current) =>
+                    current
+                      ? { ...current, characterName: event.target.value }
+                      : null,
+                  )
+                }
+                className="border-primary-50 bg-primary-50/40 text-white"
+              />
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="ghost"
+                disabled={updateTeamMemberCharacterMutation.isPending}
+                onClick={() => setEditingCharacter(null)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={
+                  !editingCharacter?.characterName.trim() ||
+                  updateTeamMemberCharacterMutation.isPending
+                }
+                className="bg-secondary-200 text-white hover:bg-secondary-200/80"
+              >
+                {updateTeamMemberCharacterMutation.isPending
+                  ? "Saving…"
+                  : "Save character"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={!!selectedImage}
+        onOpenChange={(open) => !open && setSelectedImage(null)}
+      >
+        <DialogContent className="admin-dialog max-w-5xl">
+          <DialogHeader>
+            <DialogTitle>Participant ID card</DialogTitle>
+            <DialogDescription className="text-white/60">
+              Review the participant’s proof of identity. Press Escape to close.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="relative h-[70vh] w-full">
+            {selectedImage && (
+              <Image
+                src={selectedImage}
+                alt="Full size participant ID card"
+                fill
+                unoptimized
+                className="object-contain"
+              />
+            )}
           </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

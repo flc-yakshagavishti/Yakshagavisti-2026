@@ -24,6 +24,7 @@ export default function SessionProviderWrapper({
       <TRPCReactProvider>
         <div className="flex flex-col min-h-screen">
           {pathname !== "/_error" &&
+            pathname !== "/admin" &&
             pathname !== "/dashboard/jury" &&
             pathname !== "/dashboard/results" && <Navbar />}
           <main className="flex-grow">
