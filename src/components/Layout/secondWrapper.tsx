@@ -14,7 +14,7 @@ const SecondWrapper = ({ children }: { children: React.ReactNode }) => {
 
   console.log(session);
 
-  if (pathname !== "/dashboard/jury" && session?.user.role === "JUDGE") {
+  if (pathname !== "/dashboard/jury" && session?.user?.role === "JUDGE") {
     router.push("/dashboard/jury");
     return null;
   }

@@ -15,7 +15,9 @@ import { useContainerDimension } from "~/components/customHooks";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useTranslations } from "next-intl";
 import CreateTeam from "~/components/Forms/MainForm";
+import MemberReg from "~/components/Forms/MemberReg";
 import ViewTeam from "~/components/ViewTeam";
+import { api } from "~/trpc/react";
 import { Role } from "@prisma/client";
 
 const reelImags = [
@@ -56,7 +58,19 @@ export default function Home() {
   const mainRef = useRef<HTMLDivElement>(null);
   const [isRegistrationActive, setIsRegistrationActive] =
     useState<boolean>(true);
+  const [, setFormToShow] = useState(1);
   const { data: sessionData } = useSession();
+  const characters = api.team.getCharacters.useQuery(
+    {},
+    {
+      enabled: Boolean(
+        sessionData?.user && sessionData.user.role === Role.PARTICIPANT,
+      ),
+    },
+  );
+  const isLeader = Boolean(
+    sessionData?.user?.LeaderOf ?? characters.data?.isLeader,
+  );
   const handleDownload = (path: string, name: string) => {
     // fallback to window.open if the browser doesn't support the download attribute
     const fileUrl = path;
@@ -138,11 +152,11 @@ export default function Home() {
             <Reveal classes="bottom-24">
               <div className="flex flex-col items-center gap-1 text-center landscape:short:gap-1">
                 {/* <div className="font-rhomdon font-bold text-5xl sm:text-7xl md:text-8xl 2xl:text-9xl landscape:short:text-7xl leading-snug sm:leading-snug md:leading-normal 2xl:leading-relaxed">Yakshagavishti</div> */}
-                {isRegistrationActive && !sessionData ? (
+                {isRegistrationActive && !sessionData?.user ? (
                   <div
                     className=""
                     onClick={
-                      sessionData
+                      sessionData?.user
                         ? () => void signOut()
                         : () => void signIn("google")
                     }
@@ -150,11 +164,18 @@ export default function Home() {
                     <Button>Register</Button>
                   </div>
                 ) : (
-                  sessionData?.user.role === Role.PARTICIPANT &&
-                  (!sessionData?.user?.LeaderOf?.isComplete ? (
+                  sessionData?.user?.role === Role.PARTICIPANT &&
+                  (!isLeader ? (
                     <CreateTeam />
                   ) : (
-                    <ViewTeam />
+                    <div className="flex flex-col items-center gap-3">
+                      <ViewTeam />
+                      {characters.data?.allowTeamFormation &&
+                        characters.data.assigned &&
+                        !characters.data.teamComplete && (
+                          <MemberReg setFormToShow={setFormToShow} />
+                        )}
+                    </div>
                   ))
                 )}
               </div>
@@ -263,7 +284,6 @@ export default function Home() {
                       </OutlineButton>
                     </a>
                   </Reveal>
-                  
                 </div>
               </div>
             </div>

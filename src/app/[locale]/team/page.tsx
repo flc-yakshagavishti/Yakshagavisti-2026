@@ -32,16 +32,6 @@ const team = () => {
                   <span>Finite Loop is a Coding Club, which aims to give a good perspective of development, and encourages students to realize their ideas. We encourage students to participate in competitive programming and thus, inspire the next.</span> <Link className="text-secondary-100 hover:text-secondary-200" href={"https://www.finiteloop.club/"}>Read More</Link>
                 </p>
               </Reveal>
-              <Reveal classes="">
-              <a className="self-center" target="_blank" rel="noreferrer" href="https://github.com/Kalaasangama/yakshagavishti-website">
-              <Button size="sm" className="hidden md:block">
-                <span className="text-center items-center flex gap-2 p-1">Visit Repo <BsGithub className="text-center align-middle text-xl" /></span>
-              </Button>
-              <Button className="md:hidden">
-                <span className="text-center items-center flex gap-2">Visit Repo <BsGithub className="text-center align-middle text-base" /></span>
-              </Button>
-            </a>
-              </Reveal>
 
             </div>
         </div>

@@ -1,0 +1,31 @@
+[
+  {
+    "date": "2026-09-27",
+    "macrostructure": "Workbench",
+    "genre": "modern-minimal",
+    "theme": "Yakshagavishti (preserved brand)",
+    "theme_axes": "dark / rounded-sans display / warm orange",
+    "nav": "N3 side rail; native mobile section picker",
+    "footer": "Ft2 inline rule",
+    "enrichment": "none",
+    "brief": "Event admin workspace: prioritize team ID verification and attendance; keep name-only prasanga management separate from team characters.",
+    "tone": "Utilitarian with a restrained premium finish",
+    "selfCritique": {
+      "philosophy": 4,
+      "hierarchy": 4,
+      "execution": 3,
+      "specificity": 4,
+      "restraint": 4,
+      "variety": 4
+    },
+    "verification": {
+      "responsiveWidths": [320, 375, 414, 768, 1024, 1280, 1920],
+      "responsiveResult": "All five sections: no document overflow; narrow directories intentionally scroll locally.",
+      "bodyTextContrast": "Computed normal-state text passed at 320/1280px; minimum observed ratio 5.28:1, excluding disabled/decorative elements.",
+      "keyboard": "Rail arrow-key navigation, visible focus, dialog Escape, reduced-motion button transitions checked.",
+      "browser": "Actual React components, mocked auth/API and framework navigation/image boundaries.",
+      "limits": "Screenshots captured, not visually reviewed. Live authentication/database integration, actual image delivery and PDF downloads not exercised. No blanket 58/58 certification."
+    },
+    "preservationNotes": "Existing confirmation dialogs, toast feedback and legacy utility classes on supporting directory cells were retained; admin CSS normalizes their presentation. No public-page or backend changes."
+  }
+]
