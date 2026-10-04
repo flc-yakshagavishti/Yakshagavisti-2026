@@ -25,7 +25,7 @@ export const getAchievements = (t: (key: string) => string) => {
 export const getFacultyAndFounder = (t: (key: string) => string) => {
     const members = [];
 
-    for (let i=0; i<3; i++) {
+    for (let i=0; i<4; i++) {
         const name = t(`${i}.name`);
         const role = t(`${i}.role`);
         const url = t(`${i}.url`);
@@ -39,7 +39,7 @@ export const getFacultyAndFounder = (t: (key: string) => string) => {
 export const getMembers = (t: (key: string) => string) => {
     const members = [];
 
-    for (let i=3; i<21; i++) {
+    for (let i=4; i<22; i++) {
         const name = t(`${i}.name`);
         const role = t(`${i}.role`);
         const url = t(`${i}.url`);
@@ -53,7 +53,7 @@ export const getMembers = (t: (key: string) => string) => {
 export const getMembers2025_26 = (t: (key: string) => string) => {
     const members = [];
 
-    for (let i=21; i<37; i++) {
+    for (let i=22; i<38; i++) {
         const name = t(`${i}.name`);
         const role = t(`${i}.role`);
         const url = t(`${i}.url`);
@@ -73,7 +73,7 @@ export const getMembers2025_26 = (t: (key: string) => string) => {
 export const getMembers2026_27 = (t: (key: string) => string) => {
     const members = [];
 
-    for (let i=37; i<59; i++) {
+    for (let i=38; i<60; i++) {
         const name = t(`${i}.name`);
         const role = t(`${i}.role`);
         const url = t(`${i}.url`);

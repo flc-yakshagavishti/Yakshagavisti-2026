@@ -8,13 +8,16 @@ const Sponsor = () => {
   const t = useTranslations("Sponsors");
   const [selectedYear, setSelectedYear] = useState<string>("2025-26");
 
-  const sponsorsByYear: Record<string, Array<{
-    name: string;
-    subtitle: string;
-    description: string;
-    image: string;
-    url?: string;
-  }>> = {
+  const sponsorsByYear: Record<
+    string,
+    Array<{
+      name: string;
+      subtitle: string;
+      description: string;
+      image: string;
+      url?: string;
+    }>
+  > = {
     "2023-24": [
       {
         name: "Mr. Adarsh Sudhakar Hegde",
@@ -72,7 +75,7 @@ const Sponsor = () => {
         url: "https://www.ajimmangalore.ac.in/about-aj-institute-of-management.php",
       },
     ],
-    "2025-26": [
+    "2024-25": [
       {
         name: "WENAMITAA",
         subtitle: t("Associate"),
@@ -113,10 +116,70 @@ const Sponsor = () => {
           "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSlCACI8589CTw86W5WCflW1-SSt0XiLM_T-Rey8mczoYM_9oeV9NscUjAWTyMz2YhjaA&usqp=CAU",
       },
     ],
+    "2025-26": [
+      {
+        name: "Nattoja Foundation",
+        subtitle: "Co Sponsor",
+        description:
+          "The Nattoja Foundation Trust is a premier educational and philanthropic organization based in Puttur, Karnataka, founded by Shri Subramanya Nattoja and Smt. Rajashree S. Nattoja to provide value-based, culturally rooted education. The trust sponsors and manages the prominent Ambika Group of Educational Institutions, which includes Ambika Vidyalaya CBSE (the first CBSE school in Puttur Taluk), pre-university day and residential colleges, a degree college, and competitive exam coaching academies. Distinctly driven by a strong ethos of patriotism and social service, the foundation constructed and maintains the Amar Jawan Jyothi war memorial in Puttur and runs a major philanthropic initiative offering entirely free education, food, and accommodation from kindergarten up to graduation for children of martyrs and victims of terror attacks.",
+        image:
+          "https://res.cloudinary.com/mqgak7n7/image/upload/v1790309537/Nattoja.webp",
+      },
+      {
+        name: "Canara Bank",
+        subtitle: "Co Sponsor",
+        description:
+          "Canara Bank is one of India's oldest and largest public sector banks, founded in July 1906 by the visionary philanthropist Shri Ammembal Subba Rao Pai in Mangaluru, Karnataka. Originally established as the Canara Hindu Permanent Fund Limited to assist small traders and eliminate predatory moneylending, the bank was nationalised by the Government of India in 1969 and is now headquartered in Bengaluru. Following its 2020 merger with Syndicate Bank, it operates a massive network of over 10,000 domestic branches, several international offices (including London and New York), and robust digital banking platforms like the Canara ai1 app. Driven by its founding principles of community welfare and customer centricity, the bank remains a leading national financial institution with a strong emphasis on retail, agriculture, and MSME lending.",
+        image:
+          "https://res.cloudinary.com/mqgak7n7/image/upload/v1790309536/canara_bank_logo.webp",
+      },
+      {
+        name: "Shree Caterers",
+        subtitle: "Executive Sponsor",
+        description: "",
+        image:
+          "https://res.cloudinary.com/mqgak7n7/image/upload/v1790309537/Shree_Caterers.webp",
+      },
+      {
+        name: "Muliya Jewels",
+        subtitle: "Executive Sponsor",
+        description:
+          "Muliya Gold & Diamonds (popularly known as Muliya Jewellers) is a highly respected jewellery brand in Karnataka with a legacy dating back to 1944. Established by Mr. Keshava Bhatta in Puttur, the brand has grown over eight decades to become a trusted household name, particularly celebrated across Coastal Karnataka (Dakshina Kannada) and the Coorg (Kodagu) regions. They are widely renowned for their specialty in traditional Kodava jewelry, exquisite temple and antique designs, alongside modern diamond, gold, and dedicated silver ornaments.",
+        image:
+          "https://res.cloudinary.com/mqgak7n7/image/upload/v1790309537/Muliya_jewels_logo.webp",
+        url: "https://muliya.in/",
+      },
+      {
+        name: "Master Plannery",
+        subtitle: "Executive Sponsor",
+        description:
+          "Master Plannery is a technology, engineering, construction, manufacturing and financial company.It is the Innovation imbibed with compassion to embrace all living creatures and the whole of nature and its beauty that distinguishes Master Plannery from the rest of the world. More than six decades of a strong, customer-focused approach and the continuous quest for the technology and building methods have enabled it to attain and sustain leadership in all its major lines of the industry. Master Plannery cutting edge capabilities covering the basic principles of construction and services extend to large industrial and infrastructure projects from concept to commissioning. Master Plannery believes that progress must be achieved in harmony with the environment. A commitment to community welfare and environmental protection are an integral part of the corporate vision",
+        image:
+          "https://res.cloudinary.com/mqgak7n7/image/upload/v1790309536/masterplannery.webp",
+        url: "https://masterplannery.com/",
+      },
+      {
+        name: "Sri Prashanth Kumar Holla",
+        subtitle: "Executive Sponsor",
+        description: "",
+        image:
+          "https://res.cloudinary.com/mqgak7n7/image/upload/v1791097537/prashant-kumar-holla.webp",
+      },
+      {
+        name: "G L Acharya Jewellers",
+        subtitle: "Sponsor",
+        description:
+          "Established in 1957 by Sri G L Acharya in the agricultural town of Puttur. G L Acharya Jewellers has had a long memorable journey of Trust, Purity, Innovative Designs and Customer Delight. With these values as our foundation, we have evolved from a humble 100sft. shop to a momentous group of five showrooms in Puttur, Hassan, Sullia, Kushalnagar and Moodbidri, with an upcoming flagship showroom in Mangaluru launching by the end of 2026.",
+        image:
+          "https://res.cloudinary.com/mqgak7n7/image/upload/v1790309537/GL-Acharya-jewellers.webp",
+        url: "http://glacharya.com/",
+      },
+    ],
   };
 
   const years = [
     { value: "2023-24", label: "2023-24" },
+    { value: "2024-25", label: "2024-25" },
     { value: "2025-26", label: "2025-26" },
     { value: "2026-27", label: "2026-27", comingSoon: true },
   ];
@@ -142,20 +205,20 @@ const Sponsor = () => {
               key={year.value}
               onClick={() => !year.comingSoon && setSelectedYear(year.value)}
               disabled={year.comingSoon}
-              className={`group relative px-8 py-3.5 rounded-xl font-semibold text-base sm:text-lg tracking-wide transition-all duration-300 border-2 ${
+              className={`group relative rounded-xl border-2 px-8 py-3.5 text-base font-semibold tracking-wide transition-all duration-300 sm:text-lg ${
                 selectedYear === year.value
-                  ? "bg-gradient-to-br from-secondary-100 to-secondary-200 text-white border-secondary-100 scale-105 shadow-2xl shadow-secondary-100/60 ring-2 ring-secondary-100/30 ring-offset-2 ring-offset-primary-100"
+                  ? "scale-105 border-secondary-100 bg-gradient-to-br from-secondary-100 to-secondary-200 text-white shadow-2xl shadow-secondary-100/60 ring-2 ring-secondary-100/30 ring-offset-2 ring-offset-primary-100"
                   : year.comingSoon
-                  ? "bg-gray-800/30 text-gray-500 border-gray-700/50 cursor-not-allowed opacity-60"
-                  : "bg-gray-800/40 text-white border-gray-700 hover:bg-gradient-to-br hover:from-gray-700 hover:to-gray-800 hover:border-secondary-200/50 hover:scale-105 hover:shadow-xl hover:shadow-gray-700/50 active:scale-95"
+                    ? "cursor-not-allowed border-gray-700/50 bg-gray-800/30 text-gray-500 opacity-60"
+                    : "border-gray-700 bg-gray-800/40 text-white hover:scale-105 hover:border-secondary-200/50 hover:bg-gradient-to-br hover:from-gray-700 hover:to-gray-800 hover:shadow-xl hover:shadow-gray-700/50 active:scale-95"
               }`}
             >
               <span className="relative z-10">{year.label}</span>
               {!year.comingSoon && selectedYear !== year.value && (
-                <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-secondary-100/0 to-secondary-200/0 group-hover:from-secondary-100/10 group-hover:to-secondary-200/10 transition-all duration-300" />
+                <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-secondary-100/0 to-secondary-200/0 transition-all duration-300 group-hover:from-secondary-100/10 group-hover:to-secondary-200/10" />
               )}
               {year.comingSoon && (
-                <span className="absolute -top-2 -right-2 bg-gradient-to-r from-secondary-200 to-secondary-100 text-[10px] sm:text-xs font-bold px-2.5 py-1 rounded-full text-white shadow-lg animate-pulse">
+                <span className="absolute -right-2 -top-2 animate-pulse rounded-full bg-gradient-to-r from-secondary-200 to-secondary-100 px-2.5 py-1 text-[10px] font-bold text-white shadow-lg sm:text-xs">
                   Soon
                 </span>
               )}
@@ -182,11 +245,12 @@ const Sponsor = () => {
         ) : (
           <div className="flex flex-col items-center justify-center gap-4 py-16">
             <div className="text-6xl">🎯</div>
-            <h3 className="text-2xl sm:text-3xl font-medium text-gray-300">
+            <h3 className="text-2xl font-medium text-gray-300 sm:text-3xl">
               No sponsors yet for {selectedYear}
             </h3>
-            <p className="text-lg text-gray-400 max-w-md">
-              We&apos;re working on bringing amazing sponsors for this edition. Stay tuned!
+            <p className="max-w-md text-lg text-gray-400">
+              We&apos;re working on bringing amazing sponsors for this edition.
+              Stay tuned!
             </p>
           </div>
         )}

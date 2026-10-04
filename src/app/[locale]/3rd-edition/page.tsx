@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React from "react";
 // Uncomment the following imports when the content is ready
 // import { Swiper, SwiperSlide, type SwiperRef } from "swiper/react";
 // import { EffectCards } from "swiper/modules";

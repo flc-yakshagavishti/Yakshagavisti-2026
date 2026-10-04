@@ -1,0 +1,45 @@
+{
+  "date": "2026-09-27",
+  "scope": "src/app/[locale]/admin/page.tsx",
+  "framework": {
+    "name": "Next.js App Router",
+    "declaredVersion": "^15.2.6",
+    "source": "package.json"
+  },
+  "fonts": {
+    "source": "src/app/[locale]/layout.tsx",
+    "available": ["Baloo Chettan 2", "Rhomdon", "Boris", "Oskari", "Porpora"],
+    "adminDisplay": "Baloo Chettan 2",
+    "adminBody": "Oskari",
+    "newFontDownloads": false
+  },
+  "palette": {
+    "source": "tailwind.config.cjs",
+    "navy": "#080b1e",
+    "panel": "rgba(41,47,82,0.5)",
+    "purple": "#30154b",
+    "orange": "#f76502",
+    "warmAccent": "#df8b2b",
+    "policy": "Preserve brand; prefixed admin OKLCH tokens in root tokens.css."
+  },
+  "spacing": "Existing Tailwind 4px scale, exposed as admin semantic tokens.",
+  "motion": {
+    "existing": "Framer Motion",
+    "admin": "120ms press feedback; no reveals or animated counters; reduced-motion override."
+  },
+  "preserved": [
+    "routes",
+    "API handlers",
+    "permissions",
+    "brand palette",
+    "local fonts",
+    "shared UI components"
+  ],
+  "introduced": [
+    "desktop navigation rail",
+    "mobile section picker",
+    "team review strip",
+    "responsive participant records",
+    "admin-scoped stylesheet"
+  ]
+}
