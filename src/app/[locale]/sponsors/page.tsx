@@ -162,7 +162,8 @@ const Sponsor = () => {
         name: "Sri Prashanth Kumar Holla",
         subtitle: "Executive Sponsor",
         description: "",
-        image: "Didn't share yet.jpg :<",
+        image:
+          "https://res.cloudinary.com/mqgak7n7/image/upload/v1791097537/prashant-kumar-holla.webp",
       },
       {
         name: "G L Acharya Jewellers",
