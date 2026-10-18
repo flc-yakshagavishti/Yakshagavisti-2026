@@ -17,6 +17,7 @@ import NotFound from "~/app/[locale]/not-found";
 import { ImSpinner9 } from "react-icons/im";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { setupKannadaFonts, cleanPdfText } from "~/utils/pdfFonts";
 
 interface jsPDFWithAutoTable extends jsPDF {
     lastAutoTable: {
@@ -57,30 +58,33 @@ export default function Leaderboard() {
         setExpandedRows(newExpanded);
     };
 
-    const exportToPDF = () => {
+    const exportToPDF = async () => {
         if (!teamLeaderboard || !characterLeaderboard) {
             alert("No data available to export");
             return;
         }
 
         const doc = new jsPDF();
+        const hasKannada = await setupKannadaFonts(doc);
+        const font = hasKannada ? "NotoSansKannada" : "helvetica";
         let yPosition = 20;
 
         // Title
+        doc.setFont(font, "bold");
         doc.setFontSize(20);
-        doc.setFont("helvetica", "bold");
         doc.text("Yakshagavishti Leaderboard Report", 105, yPosition, { align: "center" });
         yPosition += 15;
 
         // Team Leaderboard Section
+        doc.setFont(font, "bold");
         doc.setFontSize(16);
         doc.text("Team Leaderboard", 14, yPosition);
         yPosition += 5;
 
         const teamTableData = teamLeaderboard.map((team, index) => [
             (index + 1).toString(),
-            team.teamName,
-            team.collegeName,
+            cleanPdfText(team.teamName),
+            cleanPdfText(team.collegeName),
             team.teamTotalScore.toFixed(2) + "/900",
             `${team.characterCount}/9 (${team.judgeCount} judges)`,
         ]);
@@ -90,14 +94,15 @@ export default function Leaderboard() {
             head: [["Rank", "Team Name", "College", "Avg Score", "Characters"]],
             body: teamTableData,
             theme: "striped",
-            headStyles: { fillColor: [41, 128, 185], fontStyle: "bold" },
-            styles: { fontSize: 9 },
+            headStyles: { font, fontStyle: "bold", fillColor: [41, 128, 185] },
+            styles: { font, fontStyle: "normal", fontSize: 9 },
             alternateRowStyles: { fillColor: [245, 245, 245] },
         });
 
         yPosition = (doc as jsPDFWithAutoTable).lastAutoTable.finalY + 15;
 
         // Character Leaderboard Section
+        doc.setFont(font, "bold");
         doc.setFontSize(16);
         if (yPosition > 270) {
             doc.addPage();
@@ -121,8 +126,8 @@ export default function Leaderboard() {
             }
 
             // Character title
+            doc.setFont(font, "bold");
             doc.setFontSize(14);
-            doc.setFont("helvetica", "bold");
             doc.text(`${characterName} (${characterKey})`, 14, yPosition);
             yPosition += 5;
 
@@ -133,17 +138,17 @@ export default function Leaderboard() {
                 }
 
                 // Team header for this character
+                doc.setFont(font, "bold");
                 doc.setFontSize(11);
-                doc.setFont("helvetica", "bold");
                 doc.text(
-                    `${index + 1}. ${entry.teamName} - ${entry.collegeName}`,
+                    `${index + 1}. ${cleanPdfText(entry.teamName)} - ${cleanPdfText(entry.collegeName)}`,
                     18,
                     yPosition
                 );
                 yPosition += 5;
 
+                doc.setFont(font, "normal");
                 doc.setFontSize(10);
-                doc.setFont("helvetica", "normal");
                 doc.text(
                     `Average Score: ${entry.averageScore.toFixed(2)}/100 (${entry.judgeCount} judges)`,
                     18,

@@ -14,6 +14,7 @@ import { Role } from "@prisma/client";
 import NotFound from "~/app/[locale]/not-found";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { setupKannadaFonts, cleanPdfText } from "~/utils/pdfFonts";
 
 import {
   Table,
@@ -140,6 +141,7 @@ export default function Admin() {
   const [collegeSearch, setCollegeSearch] = useState("");
   const [adminSearch, setAdminSearch] = useState("");
   const [judgeSearch, setJudgeSearch] = useState("");
+  const [isExporting, setIsExporting] = useState(false);
 
   // Edit Team Modal
   const [editingTeam, setEditingTeam] = useState<{
@@ -383,105 +385,115 @@ export default function Admin() {
   }
 
   // --- Export PDF ---
-  const sanitizeText = (text: string): string => {
-    return text
-      .replace(/[^\x00-\x7F]/g, "")
-      .replace(/\s+/g, " ")
-      .trim();
-  };
-
-  const downloadPDF = () => {
+  const downloadPDF = async () => {
     if (!teams) {
       alert("No data available to export");
       return;
     }
 
-    const doc = new jsPDF();
-    let yPosition = 20;
+    setIsExporting(true);
+    try {
+      const doc = new jsPDF();
+      const hasKannada = await setupKannadaFonts(doc);
+      const font = hasKannada ? "NotoSansKannada" : "helvetica";
 
-    doc.setFontSize(18);
-    doc.setFont("helvetica", "bold");
-    doc.text("Yakshagavishti 2026 - Registered Teams Details", 105, yPosition, {
-      align: "center",
-    });
-    yPosition += 10;
+      let yPosition = 20;
 
-    teams.forEach((team, teamIndex) => {
-      if (!team.isComplete) return;
+      doc.setFont(font, "bold");
+      doc.setFontSize(18);
+      doc.text("Yakshagavishti 2026 - Registered Teams Details", 105, yPosition, {
+        align: "center",
+      });
+      yPosition += 10;
 
-      if (yPosition > 260) {
-        doc.addPage();
-        yPosition = 20;
-      }
+      teams.forEach((team, teamIndex) => {
+        if (!team.isComplete) return;
 
-      doc.setFontSize(14);
-      doc.setFont("helvetica", "bold");
-      const teamName = sanitizeText(team.name);
-      doc.text(
-        `Team ${teamIndex + 1}: ${teamName ? teamName : "Team " + (teamIndex + 1)}`,
-        14,
-        yPosition,
-      );
-      yPosition += 6;
+        if (yPosition > 235) {
+          doc.addPage();
+          yPosition = 20;
+        }
 
-      doc.setFontSize(11);
-      doc.setFont("helvetica", "normal");
-      const collegeName = sanitizeText(team.College?.name ?? "N/A");
-      doc.text(`College: ${collegeName ? collegeName : "N/A"}`, 14, yPosition);
-      yPosition += 5;
-      const leaderName = sanitizeText(team.Leader?.name ?? "N/A");
-      doc.text(`Leader: ${leaderName ? leaderName : "N/A"}`, 14, yPosition);
-      yPosition += 5;
-      const leaderContact = team.TeamMembers.find((m) => m.contact)?.contact;
-      if (leaderContact) {
-        doc.text(`Contact: ${leaderContact}`, 14, yPosition);
+        doc.setFont(font, "bold");
+        doc.setFontSize(14);
+        const teamName = cleanPdfText(team.name);
+        doc.text(
+          `Team ${teamIndex + 1}: ${teamName ? teamName : "Team " + (teamIndex + 1)}`,
+          14,
+          yPosition,
+        );
+        yPosition += 6;
+
+        doc.setFont(font, "normal");
+        doc.setFontSize(11);
+        const collegeName = cleanPdfText(team.College?.name ?? "N/A");
+        doc.text(`College: ${collegeName ? collegeName : "N/A"}`, 14, yPosition);
         yPosition += 5;
-      }
-      doc.text(`Attended: ${team.attended ? "Yes" : "No"}`, 14, yPosition);
-      yPosition += 7;
+        const leaderName = cleanPdfText(team.Leader?.name ?? "N/A");
+        doc.text(`Leader: ${leaderName ? leaderName : "N/A"}`, 14, yPosition);
+        yPosition += 5;
+        const leaderContact = team.TeamMembers.find((m) => m.contact)?.contact;
+        if (leaderContact) {
+          doc.text(`Contact: ${leaderContact}`, 14, yPosition);
+          yPosition += 5;
+        }
+        if (team.Prasanga?.name) {
+          const prasangaName = cleanPdfText(team.Prasanga.name);
+          doc.text(`Prasanga: ${prasangaName}`, 14, yPosition);
+          yPosition += 5;
+        }
+        doc.text(`Attended: ${team.attended ? "Yes" : "No"}`, 14, yPosition);
+        yPosition += 7;
 
-      const memberData = team.TeamMembers.map((member, idx) => [
-        (idx + 1).toString(),
-        sanitizeText(member.name)
-          ? sanitizeText(member.name)
-          : "Member " + (idx + 1),
-        sanitizeText(
-          member.characterName ?? member.Character?.character ?? "N/A",
-        )
-          ? sanitizeText(
-              member.characterName ?? member.Character?.character ?? "N/A",
-            )
-          : "N/A",
-        member.contact ?? "N/A",
-        member.isIdVerified ? "Yes" : "No",
-        member.isAttended ? "Yes" : "No",
-      ]);
+        const memberData = team.TeamMembers.map((member, idx) => {
+          const rawName = member.name?.trim();
+          const rawChar =
+            member.characterName?.trim() ??
+            member.Character?.character?.trim();
+          const cleanName = cleanPdfText(rawName);
+          const cleanChar = cleanPdfText(rawChar);
 
-      autoTable(doc, {
-        startY: yPosition,
-        head: [
-          ["#", "Name", "Character", "Contact", "ID Verified", "Attended"],
-        ],
-        body: memberData,
-        theme: "grid",
-        styles: { fontSize: 9, cellPadding: 2 },
-        headStyles: { fillColor: [41, 128, 185], fontStyle: "bold" },
-        columnStyles: {
-          0: { cellWidth: 10 },
-          1: { cellWidth: 40 },
-          2: { cellWidth: 40 },
-          3: { cellWidth: 30 },
-          4: { cellWidth: 25 },
-          5: { cellWidth: 25 },
-        },
-        margin: { left: 14 },
+          return [
+            (idx + 1).toString(),
+            cleanName ? cleanName : "Member " + (idx + 1),
+            cleanChar ? cleanChar : "N/A",
+            member.contact ?? "N/A",
+            member.isIdVerified ? "Yes" : "No",
+            member.isAttended ? "Yes" : "No",
+          ];
+        });
+
+        autoTable(doc, {
+          startY: yPosition,
+          head: [
+            ["#", "Name", "Character", "Contact", "ID Verified", "Attended"],
+          ],
+          body: memberData,
+          theme: "grid",
+          styles: { font, fontStyle: "normal", fontSize: 9, cellPadding: 2 },
+          headStyles: { font, fontStyle: "bold", fillColor: [41, 128, 185] },
+          columnStyles: {
+            0: { cellWidth: 10 },
+            1: { cellWidth: 42 },
+            2: { cellWidth: 42 },
+            3: { cellWidth: 32 },
+            4: { cellWidth: 26 },
+            5: { cellWidth: 26 },
+          },
+          margin: { left: 14, right: 14 },
+        });
+
+        yPosition = (doc as jsPDFWithAutoTable).lastAutoTable.finalY + 10;
       });
 
-      yPosition = (doc as jsPDFWithAutoTable).lastAutoTable.finalY + 10;
-    });
-
-    const timestamp = new Date().toISOString().split("T")[0];
-    doc.save(`Registered_Teams_${timestamp}.pdf`);
+      const timestamp = new Date().toISOString().split("T")[0];
+      doc.save(`Registered_Teams_${timestamp}.pdf`);
+    } catch (error) {
+      console.error("PDF export failed:", error);
+      alert("Failed to export PDF. Please check the console for details.");
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   // --- Filtered Data ---
@@ -698,11 +710,16 @@ export default function Admin() {
             {activeTab === "teams" && (
               <Button
                 onClick={downloadPDF}
-                disabled={!teams?.some((team) => team.isComplete)}
+                disabled={isExporting || !teams?.some((team) => team.isComplete)}
                 title="Export completed team registrations"
                 className="admin-button"
               >
-                <Download size={16} /> Export teams
+                {isExporting ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  <Download size={16} />
+                )}
+                Export teams
               </Button>
             )}
           </div>
