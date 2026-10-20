@@ -1,76 +1,112 @@
-import * as Dialog from '@radix-ui/react-dialog';
-import { Cross2Icon } from '@radix-ui/react-icons';
-import { Button } from "~/components/ui/button";
-import { useEffect, useState } from 'react';
-import { api } from '~/trpc/react';
+"use client";
 
-const Remarks = (team: { teamId: string, isLoading: boolean }) => {
-    const [remark, setRemark] = useState("");
-    const remarks = api.jury.addRemark.useMutation();
-    const getRemark = api.jury.getRemark.useQuery({
-        teamId: team.teamId
-    });
+import * as Dialog from "@radix-ui/react-dialog";
+import { Cross2Icon } from "@radix-ui/react-icons";
+import { MessageSquare } from "lucide-react";
+import { useEffect, useState } from "react";
+import { api } from "~/trpc/react";
+import { Button } from "../ui/button";
 
-    const saveRemark = () => {
-        remarks.mutate({
-            teamId: team.teamId,
-            remark: remark
-        },{
-            onError: (error) => {
-                console.error(error);
-                alert("Error adding remark");
-            },
-        })
-    }
+const Remarks = ({
+  teamId,
+  isLoading,
+}: {
+  teamId: string;
+  isLoading: boolean;
+}) => {
+  const [remark, setRemark] = useState("");
+  const remarks = api.jury.addRemark.useMutation();
+  const getRemark = api.jury.getRemark.useQuery(
+    { teamId },
+    { enabled: Boolean(teamId) },
+  );
 
-    useEffect(() => {
-        setRemark(getRemark.data?.remark ?? "")
-    },[getRemark.data])
+  useEffect(() => {
+    setRemark(getRemark.data?.remark ?? "");
+  }, [getRemark.data]);
 
-    return (
-    <div className="flex basis-1/2 mt-4 md:mt-0 md:justify-end text-2xl md:text-xl">
-        <div className={`flex justify-end m-2 items-center border p-2 rounded-lg ${team.isLoading ? `border-red-800 bg-red-800`:`border-green-800 bg-green-800`}`}>
-            {team.isLoading ? "Saving..." : "Saved"}
-        </div>
-        <Dialog.Root>
-            <Dialog.Trigger asChild>
-                <Button className="bg-white text-black hover:bg-gray-300 cursor-pointer flex self-center">Remarks</Button>
-            </Dialog.Trigger>
-            <Dialog.Portal>
-            <Dialog.Overlay className="data-[state=open]:animate-overlayShow fixed inset-0 backdrop-blur-sm" />
-            <Dialog.Content className="data-[state=open]:animate-contentShow fixed top-[50%] left-[50%] w-[90vw] md:max-h-[175vh] md:w-[130vw] md:max-w-[650px] translate-x-[-50%] translate-y-[-50%] bg-gray-300 rounded-lg p-[25px] shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] focus:outline-none">
-                <Dialog.Title className="text-black m-0 text-2xl font-medium border-0 border-b-2 w-full mb-3 border-black">
-                Enter Remarks
-                </Dialog.Title>
-                <label className="text-black w-[90px] text-right text-2xl" htmlFor="name">
-                    Remarks
-                </label>
-                <textarea
-                    className="text-black shadow-violet7 focus:shadow-violet8 inline-flex h-[135px] w-full flex-1 items-center justify-center rounded-[4px] p-[10px] text-xl leading-none shadow-[0_0_0_1px] outline-none focus:shadow-[0_0_0_2px]"
-                    id="name"
-                    placeholder="Type here....."
-                    value={remark}
-                    onChange={e => setRemark(e.target.value)}
-                />
-                <div className="mt-[25px] flex justify-end">
-                <Dialog.Close asChild>
-                    <Button onClick={saveRemark}>
-                    Save changes
-                    </Button>
-                </Dialog.Close>
-                </div>
-                <Dialog.Close asChild>
-                <button
-                    className="text-white hover:bg-violet4 focus:shadow-violet7 absolute top-[10px] right-[10px] inline-flex h-[25px] w-[25px] appearance-none items-center justify-center rounded-full focus:shadow-[0_0_0_2px] focus:outline-none"
-                    aria-label="Close"
+  const saveRemark = () => {
+    if (!teamId) return;
+    remarks.mutate(
+      { teamId, remark },
+      {
+        onError: (error) => alert(error.message),
+      },
+    );
+  };
+
+  return (
+    <div className="flex w-full items-center gap-2 sm:w-auto">
+      <div
+        className={`flex h-10 items-center gap-2 rounded-xl border px-3 text-xs font-medium ${
+          isLoading
+            ? "border-amber-300/30 bg-amber-300/10 text-amber-200"
+            : "border-emerald-300/30 bg-emerald-300/10 text-emerald-200"
+        }`}
+        role="status"
+      >
+        <span className="h-1.5 w-1.5 rounded-full bg-current" />
+        {isLoading ? "Saving" : "Saved"}
+      </div>
+      <Dialog.Root>
+        <Dialog.Trigger asChild>
+          <Button
+            variant="outline"
+            disabled={!teamId}
+            className="h-10 flex-1 border-white/15 bg-white/[0.06] text-white hover:bg-white/15 sm:flex-none"
+          >
+            <MessageSquare />
+            Remarks
+          </Button>
+        </Dialog.Trigger>
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm" />
+          <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-[calc(100vw-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-white/10 bg-[#211d3d] p-5 text-white shadow-2xl focus:outline-none sm:p-6">
+            <Dialog.Title className="text-xl font-semibold">
+              Add a remark
+            </Dialog.Title>
+            <Dialog.Description className="mt-1 text-sm text-white/50">
+              Add context for the admin team about this performance.
+            </Dialog.Description>
+            <textarea
+              className="mt-5 min-h-32 w-full resize-y rounded-xl border border-white/15 bg-black/20 p-3 text-sm leading-6 text-white outline-none placeholder:text-white/30 focus:border-secondary-100 focus:ring-2 focus:ring-secondary-100/20"
+              aria-label="Performance remark"
+              placeholder="Write a short remark…"
+              value={remark}
+              onChange={(event) => setRemark(event.target.value)}
+            />
+            <div className="mt-5 flex justify-end gap-2">
+              <Dialog.Close asChild>
+                <Button
+                  variant="ghost"
+                  className="text-white hover:bg-white/10"
                 >
-                    <Cross2Icon stroke='black' strokeWidth={2} />
-                </button>
-                </Dialog.Close>
-            </Dialog.Content>
-            </Dialog.Portal>
-        </Dialog.Root>
+                  Cancel
+                </Button>
+              </Dialog.Close>
+              <Dialog.Close asChild>
+                <Button
+                  onClick={saveRemark}
+                  disabled={remarks.isPending}
+                  className="bg-secondary-200 text-white hover:bg-secondary-200/90"
+                >
+                  {remarks.isPending ? "Saving…" : "Save remark"}
+                </Button>
+              </Dialog.Close>
+            </div>
+            <Dialog.Close asChild>
+              <button
+                className="absolute right-4 top-4 rounded-lg p-2 text-white/50 hover:bg-white/10 hover:text-white"
+                aria-label="Close remarks"
+              >
+                <Cross2Icon />
+              </button>
+            </Dialog.Close>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
     </div>
-)}
+  );
+};
 
 export default Remarks;

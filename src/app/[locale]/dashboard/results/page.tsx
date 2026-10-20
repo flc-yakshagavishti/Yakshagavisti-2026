@@ -56,26 +56,25 @@ const Jury: NextPage = () => {
     enabled: !isAdmin,
   });
 
-  const characters: string[] = Array.from(
-    new Set(
-      data?.flatMap((team) =>
-        team.TeamMembers.map((member) => member.Character?.character).filter(
-          (character): character is string => Boolean(character),
-        ),
-      ) ?? [],
-    ),
+  const selectedTeam = data?.find((team) => team.id === teamId);
+  const characterRecords = selectedTeam?.Prasanga?.characters ?? [];
+  const characters = characterRecords.map((character) => character.id);
+  const characterDisplayNames = characterRecords.map(
+    (character) => character.character,
   );
 
-  // Initialize scores with all values set to 0
-  const initialScores: ScoresState = {} as ScoresState;
-
-  characters.forEach((character) => {
-    initialScores[character] = {};
-
-    criteriaList.forEach((criteria) => {
-      initialScores[character]![criteria] = 999;
+  const makeInitialScores = (characterIds: string[]): ScoresState => {
+    const nextScores: ScoresState = {};
+    characterIds.forEach((character) => {
+      nextScores[character] = {};
+      criteriaList.forEach((criteria) => {
+        nextScores[character]![criteria] = 999;
+      });
     });
-  });
+    return nextScores;
+  };
+
+  const initialScores = makeInitialScores(characters);
 
   const [scores, setScores] = useState<ScoresState>(initialScores);
   const [ready, setReady] = useState<boolean>(false);
@@ -117,7 +116,11 @@ const Jury: NextPage = () => {
 
   const setTeam = (newTeamId: string, teamName: string) => {
     if (newTeamId === teamId) return;
-    setScores(initialScores);
+    const nextCharacters =
+      data?.find((team) => team.id === newTeamId)?.Prasanga?.characters ?? [];
+    setScores(
+      makeInitialScores(nextCharacters.map((character) => character.id)),
+    );
     setRefetch(true);
     setReady(false);
     setTeamId(newTeamId);
@@ -126,7 +129,7 @@ const Jury: NextPage = () => {
 
   const setJudge = (newJudgeId: string, judgeName: string) => {
     if (newJudgeId === judgeId) return;
-    setScores(initialScores);
+    setScores(makeInitialScores(characters));
     setRefetch(true);
     setReady(false);
     setJudgeId(newJudgeId);
@@ -142,7 +145,7 @@ const Jury: NextPage = () => {
     if (res.data?.length ?? 0 > 0) {
       console.log("updating");
       res.data?.forEach((item) => {
-        const character = item.characterPlayed.character;
+        const character = item.characterPlayed.id;
         const criteria = item.criteria.name;
         // Update the scores state with the new value
         setScores((prevScores) => ({
@@ -166,14 +169,14 @@ const Jury: NextPage = () => {
   }, [res.data, judge.data, teamId, judgeId]);
 
   const downloadCSV = () => {
-    const array: string[] = criteriaDisplayList;
+    const array: string[] = [...criteriaDisplayList];
     array.unshift("Character");
     array.push("Total");
     const col = array.join(",") + "\n";
 
-    const row = characters.map((character) => {
+    const row = characters.map((character, i) => {
       const row = [
-        character,
+        characterDisplayNames[i] ?? character,
         criteriaList[0] !== undefined
           ? scores[character]?.[criteriaList[0]]
           : 0,
@@ -334,7 +337,9 @@ const Jury: NextPage = () => {
                   <TableBody className="text-2xl">
                     {characters.map((character, i) => (
                       <TableRow key={i} className="text-center">
-                        <TableCell className="md:m-0">{character}</TableCell>
+                        <TableCell className="md:m-0">
+                          {characterDisplayNames[i] ?? character}
+                        </TableCell>
                         {criteriaList.map((criteria, j) => (
                           <TableCell key={j}>
                             {scores[character]?.[criteria]}

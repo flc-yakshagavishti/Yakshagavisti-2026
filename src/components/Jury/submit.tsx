@@ -13,10 +13,10 @@ import {
 } from "~/components/ui/table";
 import { api } from "~/trpc/react";
 import { type Dispatch, type SetStateAction, useState } from "react";
-import type { PlayCharacters, Criterias } from "@prisma/client";
+import type { Criterias } from "@prisma/client";
 import { toast } from "react-hot-toast";
 
-type ScoresState = Record<PlayCharacters, Record<Criterias, number>>;
+type ScoresState = Record<string, Record<Criterias, number>>;
 
 const Submit = ({
   scores,
@@ -33,7 +33,7 @@ const Submit = ({
   teamName: string;
   criteriaDisplayList: string[];
   criteriaList: Criterias[];
-  characters: PlayCharacters[];
+  characters: string[];
   setScored: Dispatch<SetStateAction<boolean>>;
   charactersDisplay: string[];
 }) => {
@@ -42,22 +42,31 @@ const Submit = ({
   const ctx = api.useContext();
 
   const saveScores = () => {
-    scoresUpdate.mutate({
-      scores: scores,
-      characters: characters,
-      criteria: criteriaList,
-      teamId: teamId,
-    });
-    void ctx.jury.getScores.invalidate();
-    setScored(true);
+    scoresUpdate.mutate(
+      {
+        scores,
+        characters,
+        criteria: criteriaList,
+        teamId,
+      },
+      {
+        onSuccess: () => {
+          void ctx.jury.getScores.invalidate({ teamId });
+          setScored(true);
+          setOpen(false);
+          toast.success("Scores submitted successfully");
+        },
+        onError: (error) => toast.error(error.message),
+      },
+    );
   };
 
-  const totalScore = (character: PlayCharacters) => {
+  const totalScore = (character: string) => {
     if (scores[character] != null) {
       const keys = criteriaList;
       let sum = 0;
       keys.forEach((key) => {
-        sum += scores[character][key];
+        sum += scores[character]?.[key] ?? 0;
       });
       return sum;
     }
@@ -68,7 +77,11 @@ const Submit = ({
     let flag = 0;
     characters.forEach((character) => {
       criteriaList.forEach((criteria) => {
-        if (scores[character][criteria] === 999) flag = 1;
+        if (
+          scores[character]?.[criteria] === undefined ||
+          scores[character]?.[criteria] === 999
+        )
+          flag = 1;
       });
     });
     if (flag === 1) {
@@ -82,27 +95,26 @@ const Submit = ({
   };
 
   return (
-    <Dialog.Root>
-      <Dialog.Trigger asChild className="flex">
-        <Button
-          onClick={checkIfAllFieldsIsScored}
-          className="mt-4 cursor-pointer bg-white text-black hover:bg-gray-400"
-        >
-          Submit
-        </Button>
-      </Dialog.Trigger>
+    <Dialog.Root open={open} onOpenChange={setOpen}>
+      <Button
+        onClick={checkIfAllFieldsIsScored}
+        disabled={scoresUpdate.isPending}
+        className="h-11 w-full bg-secondary-200 font-semibold text-white hover:bg-secondary-200/90 sm:w-auto sm:min-w-36"
+      >
+        Review & submit
+      </Button>
       {open ? (
         <Dialog.Portal>
-          <Dialog.Overlay className="data-[state=open]:animate-overlayShow fixed inset-0 backdrop-blur-sm" />
-          <Dialog.Content className="data-[state=open]:animate-contentShow fixed left-[50%] top-[50%] z-50 h-auto max-h-[90dvh] w-[80dvw] translate-x-[-50%] translate-y-[-50%] scroll-m-1 rounded-lg bg-primary-100 p-[25px] shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] focus:outline-none md:max-h-[90dvh] md:w-[80dvw] md:max-w-full">
-            <Dialog.Title className="m-0 mb-3 w-full border-0 border-b-2 border-white text-2xl font-medium text-white">
+          <Dialog.Overlay className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm" />
+          <Dialog.Content className="fixed left-1/2 top-1/2 z-50 max-h-[90dvh] w-[calc(100vw-2rem)] max-w-4xl -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl border border-white/10 bg-[#211d3d] p-4 text-white shadow-2xl focus:outline-none sm:p-6">
+            <Dialog.Title className="border-b border-white/10 pb-4 text-xl font-semibold sm:text-2xl">
               Scores of {teamName}
             </Dialog.Title>
-            <div className="flex flex-col justify-around gap-3 md:flex-row">
-              <div className="w-full">
-                <Table className="text-white">
-                  <TableHeader className="invisible md:visible">
-                    <TableRow className="text-l">
+            <div className="mt-4">
+              <div className="w-full overflow-x-auto">
+                <Table className="min-w-[700px] text-white">
+                  <TableHeader>
+                    <TableRow className="border-white/10">
                       <TableHead>ಪಾತ್ರ</TableHead>
                       {criteriaDisplayList.map((criteria, i) => (
                         <TableHead key={i} className="text-center">
@@ -112,41 +124,47 @@ const Submit = ({
                       <TableHead className="text-center">Total</TableHead>
                     </TableRow>
                   </TableHeader>
-                  <TableBody className="">
+                  <TableBody>
                     {characters.map((character, i) => (
-                      <TableRow key={i} className="">
-                        <TableCell className="md:m-0">
+                      <TableRow key={i} className="border-white/10">
+                        <TableCell className="font-medium">
                           {charactersDisplay[i]}
                         </TableCell>
                         {criteriaList.map((criteria, j) => (
-                          <TableCell key={j} className="text-center">
-                            {scores[character]?.[criteria] || 0}
+                          <TableCell
+                            key={j}
+                            className="text-center text-white/75"
+                          >
+                            {scores[character]?.[criteria] ?? 0}/20
                           </TableCell>
                         ))}
-                        <TableCell className="text-center">
+                        <TableCell className="text-center font-semibold text-secondary-100">
                           {totalScore(character)}
                         </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
-                <div className="mt-[25px] flex flex-col justify-center">
+                <div className="mt-6 flex flex-col justify-end gap-3 sm:flex-row">
                   <Dialog.Close asChild>
                     <Button
                       onClick={saveScores}
-                      className="cursor-pointer bg-white text-black hover:bg-gray-400"
+                      disabled={scoresUpdate.isPending}
+                      className="bg-secondary-200 text-white hover:bg-secondary-200/90"
                     >
-                      Confirm changes
+                      {scoresUpdate.isPending
+                        ? "Submitting…"
+                        : "Confirm submission"}
                     </Button>
                   </Dialog.Close>
-                  <div className="mt-2 text-sm text-white">
-                    Note: Once submitted, scores can not be changed without
-                    authorization
-                  </div>
+                  <p className="text-sm leading-6 text-white/50 sm:max-w-xs">
+                    Once submitted, these scores cannot be changed without admin
+                    authorization.
+                  </p>
                 </div>
                 <Dialog.Close asChild>
                   <button
-                    className="hover:bg-violet4 focus:shadow-violet7 absolute right-[10px] top-[10px] inline-flex h-[25px] w-[25px] appearance-none items-center justify-center rounded-full text-white focus:shadow-[0_0_0_2px] focus:outline-none"
+                    className="absolute right-3 top-3 rounded-lg p-2 text-white/50 hover:bg-white/10 hover:text-white"
                     aria-label="Close"
                   >
                     <Cross2Icon />
