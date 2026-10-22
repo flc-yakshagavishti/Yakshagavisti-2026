@@ -121,6 +121,7 @@ export default function Admin() {
   const removeAdminMutation = api.admin.removeAdmin.useMutation();
 
   const addJudgeMutation = api.admin.addJudge.useMutation();
+  const updateJudgeMutation = api.admin.updateJudge.useMutation();
   const removeJudgeMutation = api.admin.removeJudge.useMutation();
 
   // --- UI States ---
@@ -170,6 +171,13 @@ export default function Admin() {
   const [judgeName, setJudgeName] = useState("");
   const [judgeUsername, setJudgeUsername] = useState("");
   const [judgePassword, setJudgePassword] = useState("");
+  const [editingJudge, setEditingJudge] = useState<{
+    userId: string;
+    name: string;
+    email: string;
+    username: string;
+    password: string;
+  } | null>(null);
 
   // Signed out, or signed in without the admin role: go to login
   useEffect(() => {
@@ -379,6 +387,26 @@ export default function Admin() {
           setJudgeName("");
           setJudgeUsername("");
           setJudgePassword("");
+          void refetchJudges();
+        },
+        onError: (error) => alert(error.message),
+      },
+    );
+  }
+
+  function handleSaveJudge() {
+    if (!editingJudge || updateJudgeMutation.isPending) return;
+    updateJudgeMutation.mutate(
+      {
+        userId: editingJudge.userId,
+        name: editingJudge.name.trim(),
+        email: editingJudge.email.trim(),
+        username: editingJudge.username.trim(),
+        password: editingJudge.password ? editingJudge.password : undefined,
+      },
+      {
+        onSuccess: () => {
+          setEditingJudge(null);
           void refetchJudges();
         },
         onError: (error) => alert(error.message),
@@ -1284,6 +1312,22 @@ export default function Admin() {
                           size="sm"
                           variant="ghost"
                           onClick={() =>
+                            setEditingJudge({
+                              userId: judge.userId,
+                              name: judge.User.name,
+                              email: judge.User.email,
+                              username: judge.User.username ?? "",
+                              password: "",
+                            })
+                          }
+                          className="text-white/60 hover:bg-[rgba(41,47,82,0.5)] hover:text-white"
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() =>
                             handleRemoveJudge(judge.userId, judge.User.name)
                           }
                           disabled={removeJudgeMutation.isPending}
@@ -1659,6 +1703,119 @@ export default function Admin() {
               className="border border-purple-500/30 bg-[rgba(48,21,75,0.9)] font-medium text-white hover:bg-[rgba(48,21,75,1)]"
             >
               {addJudgeMutation.isPending ? "Adding..." : "Add Judge"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={!!editingJudge}
+        onOpenChange={(open) => {
+          if (!open && !updateJudgeMutation.isPending) setEditingJudge(null);
+        }}
+      >
+        <DialogContent className="admin-dialog sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit judge</DialogTitle>
+            <DialogDescription className="text-white/50">
+              Change the judge&apos;s details. Leave the password blank to keep the
+              current one.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form
+            id="edit-judge-form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSaveJudge();
+            }}
+          >
+            <fieldset
+              disabled={updateJudgeMutation.isPending}
+              className="space-y-4 py-2"
+            >
+              <div className="space-y-2">
+                <Label htmlFor="edit-judge-name">Name</Label>
+                <Input
+                  id="edit-judge-name"
+                  required
+                  value={editingJudge?.name ?? ""}
+                  onChange={(e) =>
+                    setEditingJudge((prev) =>
+                      prev ? { ...prev, name: e.target.value } : prev,
+                    )
+                  }
+                  className="border-[rgba(41,47,82,0.8)] bg-[rgba(41,47,82,0.5)] text-white"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-judge-email">Google email</Label>
+                <Input
+                  id="edit-judge-email"
+                  type="email"
+                  required
+                  value={editingJudge?.email ?? ""}
+                  onChange={(e) =>
+                    setEditingJudge((prev) =>
+                      prev ? { ...prev, email: e.target.value } : prev,
+                    )
+                  }
+                  className="border-[rgba(41,47,82,0.8)] bg-[rgba(41,47,82,0.5)] text-white"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-judge-username">Username (Optional)</Label>
+                <Input
+                  id="edit-judge-username"
+                  autoComplete="off"
+                  value={editingJudge?.username ?? ""}
+                  onChange={(e) =>
+                    setEditingJudge((prev) =>
+                      prev ? { ...prev, username: e.target.value } : prev,
+                    )
+                  }
+                  placeholder="Leave empty to remove"
+                  className="border-[rgba(41,47,82,0.8)] bg-[rgba(41,47,82,0.5)] text-white placeholder:text-white/30"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-judge-password">New password (Optional)</Label>
+                <Input
+                  id="edit-judge-password"
+                  type="password"
+                  autoComplete="new-password"
+                  value={editingJudge?.password ?? ""}
+                  onChange={(e) =>
+                    setEditingJudge((prev) =>
+                      prev ? { ...prev, password: e.target.value } : prev,
+                    )
+                  }
+                  placeholder="At least 6 characters"
+                  className="border-[rgba(41,47,82,0.8)] bg-[rgba(41,47,82,0.5)] text-white placeholder:text-white/30"
+                />
+              </div>
+            </fieldset>
+          </form>
+
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              disabled={updateJudgeMutation.isPending}
+              onClick={() => setEditingJudge(null)}
+              className="text-white/60 hover:bg-[rgba(41,47,82,0.5)] hover:text-white"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              form="edit-judge-form"
+              disabled={updateJudgeMutation.isPending}
+              className="border border-purple-500/30 bg-[rgba(48,21,75,0.9)] font-medium text-white hover:bg-[rgba(48,21,75,1)]"
+            >
+              {updateJudgeMutation.isPending ? "Saving..." : "Save changes"}
             </Button>
           </DialogFooter>
         </DialogContent>

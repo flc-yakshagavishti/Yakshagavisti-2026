@@ -278,7 +278,16 @@ export const adminRouter = createTRPCRouter({
   getJudges: protectedAdminProcedure.query(async ({ ctx }) => {
     return await ctx.db.judge.findMany({
       include: {
-        User: true,
+        User: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            image: true,
+            username: true,
+            role: true,
+          },
+        },
       },
     });
   }),
@@ -945,6 +954,75 @@ export const adminRouter = createTRPCRouter({
       });
 
       return user;
+    }),
+
+  updateJudge: protectedAdminProcedure
+    .input(
+      z.object({
+        userId: z.string(),
+        name: z.string().trim().min(1, "Name is required"),
+        email: z.string().email("Invalid email address"),
+        // Empty string clears the username
+        username: z.string().trim().max(50).optional(),
+        // Empty or missing keeps the current password
+        password: z
+          .string()
+          .min(6, "Password must be at least 6 characters")
+          .optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const cleanEmail = input.email.trim().toLowerCase();
+      const cleanUsername = input.username ? input.username.toLowerCase() : null;
+
+      const current = await ctx.db.user.findUnique({
+        where: { id: input.userId },
+        select: { password: true },
+      });
+      if (!current) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Judge not found" });
+      }
+
+      if (cleanUsername) {
+        const taken = await ctx.db.user.findFirst({
+          where: { username: cleanUsername, NOT: { id: input.userId } },
+        });
+        if (taken) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: "That username is already taken",
+          });
+        }
+      }
+
+      const newPassword = input.password ?? undefined;
+      if (cleanUsername && !current.password && !newPassword) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Set a password to go with this username",
+        });
+      }
+
+      const emailTaken = await ctx.db.user.findFirst({
+        where: { email: cleanEmail, NOT: { id: input.userId } },
+      });
+      if (emailTaken) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "That email belongs to another account",
+        });
+      }
+
+      return await ctx.db.user.update({
+        where: { id: input.userId },
+        data: {
+          name: input.name,
+          email: cleanEmail,
+          username: cleanUsername,
+          ...(newPassword ? { password: await hashPassword(newPassword) } : {}),
+        },
+        select: { id: true, name: true, email: true, username: true },
+      });
     }),
 
   removeJudge: protectedAdminProcedure
