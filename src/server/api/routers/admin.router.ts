@@ -3,6 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createTRPCRouter, protectedAdminProcedure } from "~/server/api/trpc";
 import kalasangamaError from "~/utils/customError";
+import { hashPassword } from "~/server/auth/password";
 
 export const adminRouter = createTRPCRouter({
   getCompetitionSettings: protectedAdminProcedure.query(({ ctx }) =>
@@ -874,10 +875,44 @@ export const adminRouter = createTRPCRouter({
       z.object({
         email: z.string().email("Invalid email address"),
         name: z.string().optional(),
+        username: z
+          .string()
+          .trim()
+          .min(3, "Username must be at least 3 characters")
+          .optional(),
+        password: z
+          .string()
+          .min(6, "Password must be at least 6 characters")
+          .optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
       const cleanEmail = input.email.trim().toLowerCase();
+      const cleanUsername = input.username?.trim().toLowerCase() ?? undefined;
+
+      if (!cleanUsername !== !input.password) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Enter both a username and a password, or neither",
+        });
+      }
+
+      if (cleanUsername) {
+        const taken = await ctx.db.user.findFirst({
+          where: { username: cleanUsername, NOT: { email: cleanEmail } },
+        });
+        if (taken) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: "That username is already taken",
+          });
+        }
+      }
+
+      const hashed = input.password
+        ? await hashPassword(input.password)
+        : undefined;
+
       let user = await ctx.db.user.findUnique({
         where: { email: cleanEmail },
       });
@@ -885,7 +920,10 @@ export const adminRouter = createTRPCRouter({
       if (user) {
         user = await ctx.db.user.update({
           where: { id: user.id },
-          data: { role: Role.JUDGE },
+          data: {
+            role: Role.JUDGE,
+            ...(cleanUsername ? { username: cleanUsername, password: hashed } : {}),
+          },
         });
       } else {
         user = await ctx.db.user.create({
@@ -895,6 +933,7 @@ export const adminRouter = createTRPCRouter({
               ? input.name.trim()
               : (cleanEmail.split("@")[0] ?? "Judge"),
             role: Role.JUDGE,
+            ...(cleanUsername ? { username: cleanUsername, password: hashed } : {}),
           },
         });
       }

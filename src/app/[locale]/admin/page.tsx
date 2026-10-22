@@ -168,6 +168,8 @@ export default function Admin() {
   const [judgeModalOpen, setJudgeModalOpen] = useState(false);
   const [judgeEmail, setJudgeEmail] = useState("");
   const [judgeName, setJudgeName] = useState("");
+  const [judgeUsername, setJudgeUsername] = useState("");
+  const [judgePassword, setJudgePassword] = useState("");
 
   if (sessionStatus === "loading") {
     return (
@@ -357,12 +359,16 @@ export default function Admin() {
       {
         email: judgeEmail.trim(),
         name: judgeName.trim() ? judgeName.trim() : undefined,
+        username: judgeUsername.trim() ? judgeUsername.trim() : undefined,
+        password: judgePassword ? judgePassword : undefined,
       },
       {
         onSuccess: () => {
           setJudgeModalOpen(false);
           setJudgeEmail("");
           setJudgeName("");
+          setJudgeUsername("");
+          setJudgePassword("");
           void refetchJudges();
         },
         onError: (error) => alert(error.message),
@@ -1596,6 +1602,31 @@ export default function Admin() {
                   value={judgeName}
                   onChange={(e) => setJudgeName(e.target.value)}
                   placeholder="e.g. Dr. Sharma"
+                  className="border-[rgba(41,47,82,0.8)] bg-[rgba(41,47,82,0.5)] text-white placeholder:text-white/30"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="judge-username">Username (Optional)</Label>
+                <Input
+                  id="judge-username"
+                  autoComplete="off"
+                  value={judgeUsername}
+                  onChange={(e) => setJudgeUsername(e.target.value)}
+                  placeholder="e.g. judge1"
+                  className="border-[rgba(41,47,82,0.8)] bg-[rgba(41,47,82,0.5)] text-white placeholder:text-white/30"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="judge-password">Password (Optional)</Label>
+                <Input
+                  id="judge-password"
+                  type="password"
+                  autoComplete="new-password"
+                  value={judgePassword}
+                  onChange={(e) => setJudgePassword(e.target.value)}
+                  placeholder="At least 6 characters"
                   className="border-[rgba(41,47,82,0.8)] bg-[rgba(41,47,82,0.5)] text-white placeholder:text-white/30"
                 />
               </div>
