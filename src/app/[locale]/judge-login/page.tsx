@@ -27,7 +27,7 @@ export default function JudgeLogin() {
       return;
     }
     // Full reload so the session is picked up everywhere.
-    window.location.href = "/dashboard/jury";
+    window.location.href = "/post-login";
   };
 
   return (
@@ -72,7 +72,7 @@ export default function JudgeLogin() {
           type="button"
           variant="outline"
           className="w-full bg-white text-primary-100"
-          onClick={() => void signIn("google", { callbackUrl: "/dashboard/jury" })}
+          onClick={() => void signIn("google", { callbackUrl: "/post-login" })}
         >
           Continue with Google
         </Button>
