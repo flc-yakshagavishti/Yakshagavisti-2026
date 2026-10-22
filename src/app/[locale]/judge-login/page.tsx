@@ -34,27 +34,29 @@ export default function JudgeLogin() {
     <div className="flex min-h-screen items-center justify-center px-4">
       <form
         onSubmit={onSubmit}
-        className="w-full max-w-sm space-y-4 rounded-lg border bg-background p-6 shadow"
+        className="w-full max-w-sm space-y-4 rounded-lg border bg-white p-6 text-gray-900 shadow"
       >
-        <h1 className="text-xl font-semibold">Judge Login</h1>
+        <h1 className="text-xl font-semibold text-gray-900">Log In</h1>
         <div className="space-y-2">
-          <Label htmlFor="username">Username</Label>
+          <Label htmlFor="username" className="text-gray-900">Username or email</Label>
           <Input
             id="username"
             autoComplete="username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
+            className="bg-white text-gray-900"
             required
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password" className="text-gray-900">Password</Label>
           <Input
             id="password"
             type="password"
             autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            className="bg-white text-gray-900"
             required
           />
         </div>

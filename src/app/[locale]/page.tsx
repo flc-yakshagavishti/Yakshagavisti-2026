@@ -1,6 +1,6 @@
 "use client";
 
-import { signIn, signOut, useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 const Timer = dynamic(() => import("~/components/Home/timer"), { ssr: false });
@@ -158,7 +158,7 @@ export default function Home() {
                     onClick={
                       sessionData?.user
                         ? () => void signOut()
-                        : () => void signIn("google")
+                        : () => { window.location.href = "/judge-login"; }
                     }
                   >
                     <Button>Register</Button>

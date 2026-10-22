@@ -66,8 +66,10 @@ export const authConfig = {
           .safeParse(credentials);
         if (!parsed.success) return null;
 
-        const username = parsed.data.username.trim().toLowerCase();
-        const user = await db.user.findUnique({ where: { username } });
+        const login = parsed.data.username.trim().toLowerCase();
+        const user = await db.user.findFirst({
+          where: { OR: [{ username: login }, { email: login }] },
+        });
         if (!user?.password) return null;
         if (!(await verifyPassword(parsed.data.password, user.password)))
           return null;

@@ -7,7 +7,7 @@ import { SmallButton } from "~/components/Button";
 import Reveal from "~/components/Animations/reveal";
 import LocaleSwitcher from "~/components/Layout/localeSwitcher";
 import { useTranslations } from "next-intl";
-import { signIn, signOut, useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -120,7 +120,7 @@ const Navbar = () => {
           </div>
           <div className="flex gap-3 items-center">
             <Reveal classes="hidden lg:block">
-              <div className="" onClick={sessionData ? () => void signOut() : () => void signIn("google")}>
+              <div className="" onClick={sessionData ? () => void signOut() : () => { window.location.href = "/judge-login"; }}>
                 <SmallButton>{sessionData ? "Log Out" : "Log In"}</SmallButton>
               </div>
             </Reveal>
@@ -195,7 +195,7 @@ const MobileNav = ({ links, editionLinks, activePath }: Props) => {
         </Reveal>
         <div className="flex gap-4 items-center">
           <Reveal classes="">
-            <div onClick={sessionData ? () => void signOut() : () => void signIn("google")}>
+            <div onClick={sessionData ? () => void signOut() : () => { window.location.href = "/judge-login"; }}>
               <SmallButton>{sessionData ? "Log Out" : "Log In"}</SmallButton>
             </div>
           </Reveal>
