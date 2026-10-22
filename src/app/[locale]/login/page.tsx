@@ -7,10 +7,12 @@ import Reveal from "~/components/Animations/reveal";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
+import { FiEye, FiEyeOff } from "react-icons/fi";
 
 export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const onSubmit = async (e: FormEvent) => {
@@ -49,21 +51,31 @@ export default function Login() {
                   autoComplete="username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="border-secondary-100/40 bg-transparent text-white placeholder:text-white/50 focus-visible:ring-secondary-100"
+                  className="border-white/20 bg-white/10 text-white placeholder:text-white/50 focus-visible:ring-secondary-100"
                   required
                 />
               </div>
               <div className="flex flex-col gap-2">
                 <Label htmlFor="password" className="font-rhomdon text-lg text-white">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  autoComplete="current-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="border-secondary-100/40 bg-transparent text-white placeholder:text-white/50 focus-visible:ring-secondary-100"
-                  required
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    autoComplete="current-password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="border-white/20 bg-white/10 pr-10 text-white placeholder:text-white/50 focus-visible:ring-secondary-100"
+                    required
+                  />
+                  <button
+                    type="button"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="absolute inset-y-0 right-0 flex items-center px-3 text-white/70 hover:text-secondary-100"
+                  >
+                    {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                  </button>
+                </div>
               </div>
               <Button
                 type="submit"
