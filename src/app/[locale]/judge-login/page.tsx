@@ -34,11 +34,11 @@ export default function JudgeLogin() {
     <div className="flex min-h-screen items-center justify-center px-4">
       <form
         onSubmit={onSubmit}
-        className="w-full max-w-sm space-y-4 rounded-lg border bg-white p-6 text-gray-900 shadow"
+        className="w-full max-w-sm space-y-4 rounded-lg border bg-white p-6 text-primary-100 shadow"
       >
-        <h1 className="text-xl font-semibold text-gray-900">Log In</h1>
+        <h1 className="text-xl font-semibold text-primary-100">Log In</h1>
         <div className="space-y-2">
-          <Label htmlFor="username" className="text-gray-900">Username or email</Label>
+          <Label htmlFor="username" className="text-primary-100">Username or email</Label>
           <Input
             id="username"
             autoComplete="username"
@@ -49,7 +49,7 @@ export default function JudgeLogin() {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="password" className="text-gray-900">Password</Label>
+          <Label htmlFor="password" className="text-primary-100">Password</Label>
           <Input
             id="password"
             type="password"
@@ -60,7 +60,7 @@ export default function JudgeLogin() {
             required
           />
         </div>
-        <Button type="submit" className="w-full" disabled={loading}>
+        <Button type="submit" className="w-full bg-primary-100 text-white hover:bg-primary-100/90" disabled={loading}>
           {loading ? "Signing in..." : "Sign in"}
         </Button>
         <div className="flex items-center gap-3 text-xs text-gray-500">
@@ -71,7 +71,7 @@ export default function JudgeLogin() {
         <Button
           type="button"
           variant="outline"
-          className="w-full bg-white text-gray-900"
+          className="w-full bg-white text-primary-100"
           onClick={() => void signIn("google", { callbackUrl: "/dashboard/jury" })}
         >
           Continue with Google
