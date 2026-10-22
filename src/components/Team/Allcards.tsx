@@ -4,7 +4,7 @@ import Card from "~/components/Team/Corecard";
 const AllCards: React.FC = () => {
   const techTeam2026_27 = [
      {
-      name: "Paripoorna B",
+      name: "Paripoorna Bhat",
       role: "Web Developer",
       linkedinURL: "https://www.linkedin.com/in/paripoorna-bhat/",
       githubURL: "https://github.com/ParipoornaBhat",
