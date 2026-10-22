@@ -1,7 +1,9 @@
 import { createTRPCRouter, protectedJudgeProcedure } from "../trpc";
 import { z } from "zod";
 import kalasangamaError from "~/utils/customError";
-import { Criterias } from "@prisma/client";
+import { Criterias, Prisma } from "@prisma/client";
+import { randomUUID } from "node:crypto";
+import { resolveJudgeCharacters } from "~/utils/scoring";
 
 const scoreInput = z.object({
   teamId: z.string(),
@@ -23,6 +25,14 @@ export const JuryRouter = createTRPCRouter({
         Prasanga: {
           include: { characters: { orderBy: { character: "asc" } } },
         },
+        TeamMembers: {
+          select: {
+            id: true,
+            characterId: true,
+            characterName: true,
+            Character: { select: { id: true, character: true } },
+          },
+        },
       },
     });
   }),
@@ -36,8 +46,8 @@ export const JuryRouter = createTRPCRouter({
     ),
   getScores: protectedJudgeProcedure
     .input(z.object({ teamId: z.string() }))
-    .query(async ({ ctx, input }) =>
-      ctx.db.individualScore.findMany({
+    .query(async ({ ctx, input }) => {
+      const scores = await ctx.db.individualScore.findMany({
         where: { teamID: input.teamId, judgeId: ctx.session.user.id },
         include: {
           criteria: true,
@@ -51,26 +61,66 @@ export const JuryRouter = createTRPCRouter({
           },
           team: { include: { College: true, Prasanga: true } },
         },
-      }),
-    ),
+      });
+      return scores;
+    }),
   updateScores: protectedJudgeProcedure
     .input(scoreInput)
     .mutation(async ({ ctx, input }) => {
       const team = await ctx.db.team.findUnique({
         where: { id: input.teamId },
-        select: { prasangaId: true },
-      });
-      const character = await ctx.db.character.findFirst({
-        where: {
-          prasangaId: team?.prasangaId ?? "",
-          OR: [{ id: input.characterId }, { character: input.characterId }],
+        include: {
+          Prasanga: { include: { characters: true } },
+          TeamMembers: {
+            select: { id: true, characterId: true, characterName: true },
+          },
+          Submitted: {
+            where: { judgeId: ctx.session.user.id },
+            select: { submitted: true },
+          },
         },
       });
-      if (!team?.prasangaId || !character)
+      if (!team?.Prasanga)
         throw new kalasangamaError(
           "Score error",
-          "Character does not belong to this team's prasanga.",
+          "Team has no assigned prasanga.",
         );
+      if (team.Submitted.some((submission) => submission.submitted))
+        throw new kalasangamaError(
+          "Score error",
+          "Scores are already submitted.",
+        );
+      const playableCharacters = resolveJudgeCharacters(
+        team.TeamMembers,
+        team.Prasanga.characters,
+      );
+      const selectedCharacter = playableCharacters.find(
+        (candidate) =>
+          candidate.memberId === input.characterId ||
+          candidate.characterId === input.characterId ||
+          candidate.character === input.characterId,
+      );
+      if (!selectedCharacter)
+        throw new kalasangamaError(
+          "Score error",
+          "Character does not belong to this team's playable characters.",
+        );
+      const characterId =
+        selectedCharacter.characterId ??
+        (
+          (await ctx.db.character.findFirst({
+            where: {
+              prasangaId: team.Prasanga.id,
+              character: selectedCharacter.character,
+            },
+          })) ??
+          (await ctx.db.character.create({
+            data: {
+              prasangaId: team.Prasanga.id,
+              character: selectedCharacter.character,
+            },
+          }))
+        ).id;
       const criteria = await ctx.db.criteria.upsert({
         where: { name: input.criteriaName },
         create: { name: input.criteriaName },
@@ -80,7 +130,7 @@ export const JuryRouter = createTRPCRouter({
         where: {
           teamID_criteriaId_characterId_judgeId: {
             criteriaId: criteria.id,
-            characterId: character.id,
+            characterId,
             teamID: input.teamId,
             judgeId: ctx.session.user.id,
           },
@@ -88,7 +138,7 @@ export const JuryRouter = createTRPCRouter({
         update: { score: input.score },
         create: {
           criteriaId: criteria.id,
-          characterId: character.id,
+          characterId,
           teamID: input.teamId,
           score: input.score,
           judgeId: ctx.session.user.id,
@@ -115,62 +165,161 @@ export const JuryRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const team = await ctx.db.team.findUnique({
         where: { id: input.teamId },
-        select: { prasangaId: true },
+        include: {
+          Prasanga: { include: { characters: true } },
+          TeamMembers: {
+            select: { id: true, characterId: true, characterName: true },
+          },
+          Submitted: {
+            where: { judgeId: ctx.session.user.id },
+            select: { submitted: true },
+          },
+        },
       });
-      if (!team?.prasangaId)
+      if (!team?.Prasanga)
         throw new kalasangamaError(
           "Score error",
           "Team has no assigned prasanga.",
         );
-      const characters = await ctx.db.character.findMany({
-        where: { id: { in: input.characters }, prasangaId: team.prasangaId },
-      });
-      if (characters.length !== input.characters.length)
+      if (team.Submitted.some((submission) => submission.submitted))
         throw new kalasangamaError(
           "Score error",
-          "Invalid character for this team's prasanga.",
+          "Scores are already submitted.",
         );
-      const criteriaRows = await ctx.db.criteria.findMany({
-        where: { name: { in: input.criteria } },
-      });
-      for (const character of characters)
-        for (const criteria of criteriaRows) {
-          const score =
-            input.scores[character.id]?.[criteria.name] ??
-            input.scores[character.character]?.[criteria.name] ??
-            0;
-          await ctx.db.individualScore.upsert({
+      const playableCharacters = resolveJudgeCharacters(
+        team.TeamMembers,
+        team.Prasanga.characters,
+      );
+      const submittedCharacters = input.characters.map((characterKey) =>
+        playableCharacters.find(
+          (character) =>
+            character.memberId === characterKey ||
+            character.characterId === characterKey ||
+            character.character === characterKey,
+        ),
+      );
+      if (
+        input.characters.length !== 10 ||
+        new Set(submittedCharacters.map((character) => character?.memberId))
+          .size !== 10 ||
+        submittedCharacters.some((character) => !character)
+      )
+        throw new kalasangamaError(
+          "Score error",
+          "Scores must include exactly this team's 10 playable characters.",
+        );
+      const criteriaNames = Object.values(Criterias);
+      if (
+        input.criteria.length !== criteriaNames.length ||
+        criteriaNames.some((criteria) => !input.criteria.includes(criteria))
+      )
+        throw new kalasangamaError(
+          "Score error",
+          "All five criteria are required.",
+        );
+      const prasangaId = team.Prasanga.id;
+
+      const scoreValues = playableCharacters.flatMap((character) =>
+        criteriaNames.map((criteriaName) => ({
+          character,
+          criteriaName,
+          score:
+            input.scores[character.memberId]?.[criteriaName] ??
+            input.scores[character.characterId ?? ""]?.[criteriaName] ??
+            input.scores[character.character]?.[criteriaName],
+        })),
+      );
+      if (scoreValues.some(({ score }) => score === undefined))
+        throw new kalasangamaError("Score error", "Every score is required.");
+
+      return ctx.db.$transaction(
+        async (tx) => {
+          const missingCharacters = playableCharacters.filter(
+            (character) => !character.characterId,
+          );
+          if (missingCharacters.length)
+            await tx.character.createMany({
+              data: missingCharacters.map((character) => ({
+                prasangaId,
+                character: character.character,
+              })),
+              skipDuplicates: true,
+            });
+
+          const characterRows = await tx.character.findMany({
             where: {
-              teamID_criteriaId_characterId_judgeId: {
+              prasangaId,
+              OR: [
+                {
+                  id: {
+                    in: playableCharacters.flatMap((character) =>
+                      character.characterId ? [character.characterId] : [],
+                    ),
+                  },
+                },
+                {
+                  character: {
+                    in: missingCharacters.map(
+                      (character) => character.character,
+                    ),
+                  },
+                },
+              ],
+            },
+            select: { id: true, character: true },
+          });
+          const characterByName = new Map(
+            characterRows.map((character) => [
+              character.character,
+              character.id,
+            ]),
+          );
+          const scoreCharacters = playableCharacters.map((character) => ({
+            ...character,
+            characterId:
+              character.characterId ??
+              characterByName.get(character.character)!,
+          }));
+
+          await tx.criteria.createMany({
+            data: criteriaNames.map((name) => ({ name })),
+            skipDuplicates: true,
+          });
+          const criteriaRows = await tx.criteria.findMany({
+            where: { name: { in: criteriaNames } },
+            select: { id: true, name: true },
+          });
+          const criteriaByName = new Map(
+            criteriaRows.map((criteria) => [criteria.name, criteria.id]),
+          );
+          const scoreRows = scoreValues.map(
+            ({ character, criteriaName, score }) =>
+              Prisma.sql`(${randomUUID()}, ${input.teamId}, ${criteriaByName.get(criteriaName)}, ${scoreCharacters.find((item) => item.memberId === character.memberId)!.characterId}, ${score}, ${ctx.session.user.id})`,
+          );
+
+          await tx.$executeRaw(Prisma.sql`
+            INSERT INTO "IndividualScore" ("id", "teamID", "criteriaId", "characterId", "score", "judgeId")
+            VALUES ${Prisma.join(scoreRows)}
+            ON CONFLICT ("teamID", "criteriaId", "characterId", "judgeId")
+            DO UPDATE SET "score" = EXCLUDED."score"
+          `);
+
+          return tx.submitted.upsert({
+            where: {
+              judgeId_teamID: {
                 teamID: input.teamId,
-                criteriaId: criteria.id,
-                characterId: character.id,
                 judgeId: ctx.session.user.id,
               },
             },
-            update: { score },
             create: {
               teamID: input.teamId,
-              criteriaId: criteria.id,
-              characterId: character.id,
               judgeId: ctx.session.user.id,
-              score,
+              submitted: true,
             },
+            update: { submitted: true },
           });
-        }
-      return ctx.db.submitted.upsert({
-        where: {
-          judgeId_teamID: {
-            teamID: input.teamId,
-            judgeId: ctx.session.user.id,
-          },
         },
-        create: {
-          teamID: input.teamId,
-          judgeId: ctx.session.user.id,
-          submitted: true,
-        },
-        update: { submitted: true },
-      });
+        { timeout: 15000 },
+      );
     }),
 });

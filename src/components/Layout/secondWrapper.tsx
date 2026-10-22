@@ -2,20 +2,28 @@
 
 import { useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
+import { useEffect } from "react";
 import type React from "react";
 
 const SecondWrapper = ({ children }: { children: React.ReactNode }) => {
-  let pathname = usePathname();
+  const pathname = usePathname();
   const { data: session } = useSession();
   const router = useRouter();
 
-  pathname = pathname.replace("/en/", "/");
-  pathname = pathname.replace("/kn/", "/");
+  const normalizedPath = pathname.replace(/^\/(en|kn)(?=\/|$)/, "") || "/";
+  const locale = /^\/(en|kn)(?:\/|$)/.exec(pathname)?.[1];
+  const judgePath = locale ? `/${locale}/dashboard/jury` : "/dashboard/jury";
 
-  console.log(session);
+  useEffect(() => {
+    if (
+      session?.user?.role === "JUDGE" &&
+      normalizedPath !== "/dashboard/jury"
+    ) {
+      router.replace(judgePath);
+    }
+  }, [judgePath, normalizedPath, router, session?.user?.role]);
 
-  if (pathname !== "/dashboard/jury" && session?.user?.role === "JUDGE") {
-    router.push("/dashboard/jury");
+  if (session?.user?.role === "JUDGE" && normalizedPath !== "/dashboard/jury") {
     return null;
   }
 

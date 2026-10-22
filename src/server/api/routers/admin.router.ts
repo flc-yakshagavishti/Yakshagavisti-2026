@@ -327,19 +327,23 @@ export const adminRouter = createTRPCRouter({
     return ctx.db.team.findMany({
       include: {
         TeamMembers: { include: { Character: true } },
-        Prasanga: true,
+        Prasanga: { include: { characters: true } },
       },
     });
   }),
   checkIfAllSubmitted: protectedAdminProcedure.query(async ({ ctx }) => {
-    const Submitted = await ctx.db.submitted.findMany({
+    const submitted = await ctx.db.submitted.findMany({
       where: {
         submitted: true,
+        Team: { attended: true, isComplete: true, prasangaId: { not: null } },
       },
+      select: { judgeId: true, teamID: true },
     });
-    const teams = await ctx.db.team.findMany();
+    const teams = await ctx.db.team.count({
+      where: { attended: true, isComplete: true, prasangaId: { not: null } },
+    });
     const judges = await ctx.db.judge.findMany();
-    if (Submitted.length !== teams.length * judges.length) {
+    if (submitted.length !== teams * judges.length) {
       return "Not submitted";
     }
     return "done";
@@ -375,9 +379,10 @@ export const adminRouter = createTRPCRouter({
         },
       });
 
-      // Calculate team average score (out of 900)
+      // Each team has ten playable characters, each with five criteria worth 20.
+      // The team lead is stored separately and is not included in these scores.
       const leaderboard = teams.map((team) => {
-        // Group scores by judge - each judge scores the team out of 900
+        // Group scores by judge - each judge scores the team out of 1000.
         const judgeScores = new Map<string, number>();
 
         team.IndividualScore.forEach((score) => {
@@ -386,7 +391,7 @@ export const adminRouter = createTRPCRouter({
           judgeScores.set(judgeId, currentTotal + score.score);
         });
 
-        // Average across all judges (each judge's total is out of 900)
+        // Average across all judges (each judge's total is out of 1000)
         const totalScore = Array.from(judgeScores.values()).reduce(
           (sum, score) => sum + score,
           0,
@@ -403,7 +408,7 @@ export const adminRouter = createTRPCRouter({
           teamId: team.id,
           teamName: team.name,
           collegeName: team.College?.name ?? "Unknown",
-          teamTotalScore: Math.round(averageScore * 100) / 100, // Average score out of 900
+          teamTotalScore: Math.round(averageScore * 100) / 100,
           characterCount: uniqueCharacters,
           judgeCount, // For debugging
         };
@@ -428,6 +433,7 @@ export const adminRouter = createTRPCRouter({
           score: true,
           characterPlayed: {
             select: {
+              id: true,
               character: true,
             },
           },
@@ -435,6 +441,7 @@ export const adminRouter = createTRPCRouter({
             select: {
               id: true,
               name: true,
+              Prasanga: { select: { id: true, name: true } },
               College: {
                 select: {
                   name: true,
@@ -467,6 +474,8 @@ export const adminRouter = createTRPCRouter({
           teamId: string;
           teamName: string;
           collegeName: string;
+          prasangaId: string;
+          prasangaName: string;
           character: string;
           judgeScores: Map<string, Map<string, number>>;
           judgeNames: Map<string, string>;
@@ -474,12 +483,14 @@ export const adminRouter = createTRPCRouter({
       >();
 
       scores.forEach((score) => {
-        const key = `${score.team.id}-${score.characterPlayed.character}`;
+        const key = `${score.team.id}-${score.characterPlayed.id}`;
         if (!characterMap.has(key)) {
           characterMap.set(key, {
             teamId: score.team.id,
             teamName: score.team.name,
             collegeName: score.team.College?.name ?? "Unknown",
+            prasangaId: score.team.Prasanga?.id ?? "unknown",
+            prasangaName: score.team.Prasanga?.name ?? "Unknown Prasanga",
             character: score.characterPlayed.character,
             judgeScores: new Map(),
             judgeNames: new Map(),
@@ -556,6 +567,8 @@ export const adminRouter = createTRPCRouter({
           teamId: entry.teamId,
           teamName: entry.teamName,
           collegeName: entry.collegeName,
+          prasangaId: entry.prasangaId,
+          prasangaName: entry.prasangaName,
           character: entry.character,
           averageScore, // Out of 100
           judgeCount,
