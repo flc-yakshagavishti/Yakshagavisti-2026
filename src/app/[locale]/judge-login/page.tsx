@@ -63,6 +63,19 @@ export default function JudgeLogin() {
         <Button type="submit" className="w-full" disabled={loading}>
           {loading ? "Signing in..." : "Sign in"}
         </Button>
+        <div className="flex items-center gap-3 text-xs text-gray-500">
+          <span className="h-px flex-1 bg-gray-200" />
+          or
+          <span className="h-px flex-1 bg-gray-200" />
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full bg-white text-gray-900"
+          onClick={() => void signIn("google", { callbackUrl: "/dashboard/jury" })}
+        >
+          Continue with Google
+        </Button>
       </form>
     </div>
   );
