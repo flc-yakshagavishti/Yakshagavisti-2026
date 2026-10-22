@@ -88,9 +88,11 @@ const AllCards: React.FC = () => {
           Tech Team 2026-27
         </h2>
         <div className="flex items-center justify-center">
-          <div className="grid w-full max-w-6xl grid-cols-1 justify-center justify-items-center gap-4 px-4 md:grid-cols-[repeat(2,minmax(0,24rem))] lg:grid-cols-[repeat(4,minmax(0,24rem))]">
+          <div className="flex w-full max-w-7xl flex-wrap justify-center gap-4 px-4">
             {techTeam2026_27.map((cardProp, idx) => (
-              <Card key={idx} {...cardProp} />
+              <div key={idx} className="w-full md:w-72">
+                <Card {...cardProp} />
+              </div>
             ))}
           </div>
         </div>
@@ -101,9 +103,11 @@ const AllCards: React.FC = () => {
           Tech Team 2025-26
         </h2>
         <div className="flex items-center justify-center">
-          <div className="grid w-full max-w-6xl grid-cols-1 justify-center justify-items-center gap-4 px-4 md:grid-cols-[repeat(2,minmax(0,24rem))] lg:grid-cols-[repeat(4,minmax(0,24rem))]">
+          <div className="flex w-full max-w-7xl flex-wrap justify-center gap-4 px-4">
             {techTeam2025_26.map((cardProp, idx) => (
-              <Card key={idx} {...cardProp} />
+              <div key={idx} className="w-full md:w-72">
+                <Card {...cardProp} />
+              </div>
             ))}
           </div>
         </div>
@@ -115,9 +119,11 @@ const AllCards: React.FC = () => {
           Tech Team 2024-25
         </h2>
         <div className="flex items-center justify-center">
-          <div className="grid w-full max-w-6xl grid-cols-1 justify-center justify-items-center gap-4 px-4 md:grid-cols-[repeat(2,minmax(0,24rem))] lg:grid-cols-[repeat(4,minmax(0,24rem))]">
+          <div className="flex w-full max-w-7xl flex-wrap justify-center gap-4 px-4">
             {techTeam2024_25.map((cardProp, idx) => (
-              <Card key={idx} {...cardProp} />
+              <div key={idx} className="w-full md:w-72">
+                <Card {...cardProp} />
+              </div>
             ))}
           </div>
         </div>
