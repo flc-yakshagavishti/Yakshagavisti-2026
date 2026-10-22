@@ -3,6 +3,13 @@ import Card from "~/components/Team/Corecard";
 
 const AllCards: React.FC = () => {
   const techTeam2026_27 = [
+     {
+      name: "Paripoorna B",
+      role: "Web Developer",
+      linkedinURL: "https://www.linkedin.com/in/paripoorna-bhat/",
+      githubURL: "https://github.com/ParipoornaBhat",
+      url: "https://res.cloudinary.com/mqgak7n7/image/upload/v1792674022/Paripoorna_B.jpg",
+    },
     {
       name: "Madvith D Amin",
       role: "Web Developer",
@@ -81,7 +88,7 @@ const AllCards: React.FC = () => {
           Tech Team 2026-27
         </h2>
         <div className="flex items-center justify-center">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid w-full max-w-6xl grid-cols-1 gap-4 px-4 md:grid-cols-2 lg:grid-cols-4">
             {techTeam2026_27.map((cardProp, idx) => (
               <Card key={idx} {...cardProp} />
             ))}
@@ -94,7 +101,7 @@ const AllCards: React.FC = () => {
           Tech Team 2025-26
         </h2>
         <div className="flex items-center justify-center">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid w-full max-w-6xl grid-cols-1 gap-4 px-4 md:grid-cols-2 lg:grid-cols-4">
             {techTeam2025_26.map((cardProp, idx) => (
               <Card key={idx} {...cardProp} />
             ))}
@@ -108,7 +115,7 @@ const AllCards: React.FC = () => {
           Tech Team 2024-25
         </h2>
         <div className="flex items-center justify-center">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid w-full max-w-6xl grid-cols-1 gap-4 px-4 md:grid-cols-2 lg:grid-cols-4">
             {techTeam2024_25.map((cardProp, idx) => (
               <Card key={idx} {...cardProp} />
             ))}
