@@ -45,6 +45,8 @@ model User {
   emailVerified Boolean?  @default(false)
   image         String?
   role          Role      @default(PARTICIPANT)
+  username      String?   @unique
+  password      String?
   LeaderOf      Team?     @relation(name: "TeamLead")
   accounts      Account[]
   sessions      Session[]

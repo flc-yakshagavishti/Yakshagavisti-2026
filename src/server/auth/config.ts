@@ -1,11 +1,13 @@
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { type DefaultSession, type NextAuthConfig } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
+import CredentialsProvider from "next-auth/providers/credentials";
 
 import { z } from "zod";
 import { env } from "~/env";
 import { db } from "~/server/db";
 import { Role } from "@prisma/client";
+import { verifyPassword } from "./password";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -52,6 +54,27 @@ export const authConfig = {
       // first sign-in instead of hitting OAuthAccountNotLinked.
       allowDangerousEmailAccountLinking: true,
     }),
+    // Username/password login for accounts seeded with a password (judges).
+    CredentialsProvider({
+      credentials: {
+        username: { label: "Username" },
+        password: { label: "Password", type: "password" },
+      },
+      authorize: async (credentials) => {
+        const parsed = z
+          .object({ username: z.string().min(1), password: z.string().min(1) })
+          .safeParse(credentials);
+        if (!parsed.success) return null;
+
+        const username = parsed.data.username.trim().toLowerCase();
+        const user = await db.user.findUnique({ where: { username } });
+        if (!user?.password) return null;
+        if (!(await verifyPassword(parsed.data.password, user.password)))
+          return null;
+
+        return { id: user.id, name: user.name, email: user.email };
+      },
+    }),
     /**
      * ...add more providers here.
      *
@@ -63,11 +86,14 @@ export const authConfig = {
      */
   ],
   adapter: PrismaAdapter(db),
+  // Credentials login requires JWT sessions; role is still read from the DB
+  // on every session so role changes apply immediately.
+  session: { strategy: "jwt" },
   callbacks: {
-    session: async ({ session, user }) => {
-      if (session?.user) {
+    session: async ({ session, token }) => {
+      if (session?.user && token.sub) {
         const data = await db.user.findUnique({
-          where: { id: user.id },
+          where: { id: token.sub },
           select: {
             role: true,
             LeaderOf: {
@@ -80,7 +106,7 @@ export const authConfig = {
             },
           },
         });
-        session.user.id = z.string().parse(user.id);
+        session.user.id = token.sub;
         session.user.role = data?.role ?? Role.PARTICIPANT;
         session.user.LeaderOf = data?.LeaderOf
           ? z
