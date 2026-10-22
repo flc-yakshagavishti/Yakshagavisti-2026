@@ -35,7 +35,7 @@ export default function Login() {
       <div className="container m-auto flex justify-center">
         <div className="flex w-full max-w-md flex-col gap-8">
           <Reveal classes="">
-            <h2 className="text-center font-rhomdon text-4xl font-bold md:text-5xl">
+            <h2 className="text-center font-rhomdon text-4xl font-bold text-white md:text-5xl">
               Log <span className="text-secondary-100">In</span>
             </h2>
           </Reveal>
@@ -43,47 +43,49 @@ export default function Login() {
           <Reveal classes="">
             <form onSubmit={onSubmit} className="flex flex-col gap-5">
               <div className="flex flex-col gap-2">
-                <Label htmlFor="username">Username or email</Label>
+                <Label htmlFor="username" className="font-rhomdon text-lg text-white">Username or email</Label>
                 <Input
                   id="username"
                   autoComplete="username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
+                  className="border-secondary-100/40 bg-transparent text-white placeholder:text-white/50 focus-visible:ring-secondary-100"
                   required
                 />
               </div>
               <div className="flex flex-col gap-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password" className="font-rhomdon text-lg text-white">Password</Label>
                 <Input
                   id="password"
                   type="password"
                   autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  className="border-secondary-100/40 bg-transparent text-white placeholder:text-white/50 focus-visible:ring-secondary-100"
                   required
                 />
               </div>
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-secondary-100 text-black hover:bg-secondary-200"
+                className="w-full rounded-md bg-secondary-100 font-rhomdon text-lg text-white hover:bg-secondary-200"
               >
                 {loading ? "Signing in..." : "Sign in"}
               </Button>
             </form>
           </Reveal>
 
-          <div className="flex items-center gap-3 text-sm opacity-70">
-            <span className="h-px flex-1 bg-current opacity-30" />
+          <div className="flex items-center gap-3 font-rhomdon text-white/70">
+            <span className="h-px flex-1 bg-white/30" />
             or
-            <span className="h-px flex-1 bg-current opacity-30" />
+            <span className="h-px flex-1 bg-white/30" />
           </div>
 
           <Reveal classes="">
             <Button
               type="button"
               variant="outline"
-              className="w-full"
+              className="w-full rounded-md border-secondary-100 bg-transparent font-rhomdon text-lg text-white hover:bg-secondary-100/10 hover:text-white"
               onClick={() => void signIn("google", { callbackUrl: "/post-login" })}
             >
               Continue with Google
