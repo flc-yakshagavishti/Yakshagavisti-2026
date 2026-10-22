@@ -157,7 +157,7 @@ export default function Home() {
                     className=""
                     onClick={
                       sessionData?.user
-                        ? () => void signOut()
+                        ? () => void signOut({ callbackUrl: "/login" })
                         : () => { window.location.href = "/login"; }
                     }
                   >

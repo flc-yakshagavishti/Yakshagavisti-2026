@@ -26,7 +26,12 @@ import { Button } from "~/components/ui/button";
 import NotFound from "~/app/[locale]/not-found";
 
 const Jury: NextPage = () => {
-  const { data: sessionData } = useSession();
+  const { data: sessionData, status: sessionStatus } = useSession();
+
+  // Signed out: go to login
+  useEffect(() => {
+    if (sessionStatus === "unauthenticated") window.location.href = "/login";
+  }, [sessionStatus]);
 
   const isAdmin = !sessionData?.user || sessionData?.user?.role !== Role.ADMIN;
 

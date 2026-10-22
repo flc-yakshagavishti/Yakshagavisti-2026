@@ -61,8 +61,15 @@ const Jury: NextPage = () => {
   const [scored, setScored] = useState<boolean>(false);
   const [updating, setUpdating] = useState<boolean>(false);
 
-  const { data: sessionData } = useSession();
+  const { data: sessionData, status: sessionStatus } = useSession();
   const isJudge = !sessionData?.user || sessionData?.user?.role !== Role.JUDGE;
+
+  // Signed out, or signed in without the judge role: go to login
+  useEffect(() => {
+    if (sessionStatus === "unauthenticated" || (sessionStatus === "authenticated" && isJudge)) {
+      window.location.href = "/login";
+    }
+  }, [sessionStatus, isJudge]);
 
   const scoreUpdate = api.jury.updateScores.useMutation();
   const { data, isLoading } = api.jury.getTeams.useQuery(undefined, {
@@ -325,7 +332,7 @@ const Jury: NextPage = () => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => signOut()}
+              onClick={() => signOut({ callbackUrl: "/login" })}
               className="border border-white/15 text-white hover:bg-white/10"
               aria-label="Sign out"
             >

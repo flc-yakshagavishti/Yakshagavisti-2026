@@ -9,7 +9,7 @@ import { PrasangaSection } from "~/components/admin/PrasangaSection";
 import { TeamReviewCard } from "~/components/admin/TeamReviewCard";
 import { AdminSelect } from "~/components/admin/AdminSelect";
 import "~/components/admin/admin.css";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Role } from "@prisma/client";
 import NotFound from "~/app/[locale]/not-found";
 import jsPDF from "jspdf";
@@ -170,6 +170,16 @@ export default function Admin() {
   const [judgeName, setJudgeName] = useState("");
   const [judgeUsername, setJudgeUsername] = useState("");
   const [judgePassword, setJudgePassword] = useState("");
+
+  // Signed out, or signed in without the admin role: go to login
+  useEffect(() => {
+    if (
+      sessionStatus === "unauthenticated" ||
+      (sessionStatus === "authenticated" && sessionData?.user?.role !== "ADMIN")
+    ) {
+      window.location.href = "/login";
+    }
+  }, [sessionStatus, sessionData]);
 
   if (sessionStatus === "loading") {
     return (
