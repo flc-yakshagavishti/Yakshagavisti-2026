@@ -15,7 +15,7 @@ export default function PostLogin() {
 
   useEffect(() => {
     if (status === "unauthenticated") {
-      window.location.href = "/judge-login";
+      window.location.href = "/login";
       return;
     }
     if (status === "authenticated") {

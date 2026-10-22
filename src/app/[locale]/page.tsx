@@ -158,7 +158,7 @@ export default function Home() {
                     onClick={
                       sessionData?.user
                         ? () => void signOut()
-                        : () => { window.location.href = "/judge-login"; }
+                        : () => { window.location.href = "/login"; }
                     }
                   >
                     <Button>Register</Button>

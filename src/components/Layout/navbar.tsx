@@ -120,7 +120,7 @@ const Navbar = () => {
           </div>
           <div className="flex gap-3 items-center">
             <Reveal classes="hidden lg:block">
-              <div className="" onClick={sessionData ? () => void signOut() : () => { window.location.href = "/judge-login"; }}>
+              <div className="" onClick={sessionData ? () => void signOut() : () => { window.location.href = "/login"; }}>
                 <SmallButton>{sessionData ? "Log Out" : "Log In"}</SmallButton>
               </div>
             </Reveal>
@@ -195,7 +195,7 @@ const MobileNav = ({ links, editionLinks, activePath }: Props) => {
         </Reveal>
         <div className="flex gap-4 items-center">
           <Reveal classes="">
-            <div onClick={sessionData ? () => void signOut() : () => { window.location.href = "/judge-login"; }}>
+            <div onClick={sessionData ? () => void signOut() : () => { window.location.href = "/login"; }}>
               <SmallButton>{sessionData ? "Log Out" : "Log In"}</SmallButton>
             </div>
           </Reveal>
