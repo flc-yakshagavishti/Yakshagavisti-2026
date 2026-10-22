@@ -3,11 +3,11 @@
 import { signIn } from "next-auth/react";
 import { useState, type FormEvent } from "react";
 import toast from "react-hot-toast";
+import { FiEye, FiEyeOff } from "react-icons/fi";
 import Reveal from "~/components/Animations/reveal";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { FiEye, FiEyeOff } from "react-icons/fi";
 
 export default function Login() {
   const [username, setUsername] = useState("");
@@ -41,6 +41,22 @@ export default function Login() {
               Log <span className="text-secondary-100">In</span>
             </h2>
           </Reveal>
+
+          <Reveal classes="">
+            <Button
+              type="button"
+              className="w-full rounded-md bg-secondary-100 font-rhomdon text-lg text-white hover:bg-secondary-200"
+              onClick={() => void signIn("google", { callbackUrl: "/post-login" })}
+            >
+              Continue with Google
+            </Button>
+          </Reveal>
+
+          <div className="flex items-center gap-3 font-rhomdon text-white/70">
+            <span className="h-px flex-1 bg-white/30" />
+            Organisers
+            <span className="h-px flex-1 bg-white/30" />
+          </div>
 
           <Reveal classes="">
             <form onSubmit={onSubmit} className="flex flex-col gap-5">
@@ -80,28 +96,12 @@ export default function Login() {
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full rounded-md bg-secondary-100 font-rhomdon text-lg text-white hover:bg-secondary-200"
+                variant="outline"
+                className="w-full rounded-md border-secondary-100 bg-transparent font-rhomdon text-lg text-white hover:bg-secondary-100/10 hover:text-white"
               >
-                {loading ? "Signing in..." : "Sign in"}
+                {loading ? "Signing in..." : "Organiser sign in"}
               </Button>
             </form>
-          </Reveal>
-
-          <div className="flex items-center gap-3 font-rhomdon text-white/70">
-            <span className="h-px flex-1 bg-white/30" />
-            or
-            <span className="h-px flex-1 bg-white/30" />
-          </div>
-
-          <Reveal classes="">
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full rounded-md border-secondary-100 bg-transparent font-rhomdon text-lg text-white hover:bg-secondary-100/10 hover:text-white"
-              onClick={() => void signIn("google", { callbackUrl: "/post-login" })}
-            >
-              Continue with Google
-            </Button>
           </Reveal>
         </div>
       </div>
