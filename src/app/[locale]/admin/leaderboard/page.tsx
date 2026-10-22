@@ -89,7 +89,7 @@ export default function Leaderboard() {
       (index + 1).toString(),
       cleanPdfText(team.teamName),
       cleanPdfText(team.collegeName),
-      team.teamTotalScore.toFixed(2) + "/1000",
+      (team.teamTotalScore / 10).toFixed(2) + "/100",
       `${team.characterCount}/10 (${team.judgeCount} judges)`,
     ]);
 
@@ -316,7 +316,7 @@ export default function Leaderboard() {
                         College
                       </TableHead>
                       <TableHead className="text-right font-bold text-white">
-                        Average Score (out of 1000)
+                        Average Score (out of 100)
                       </TableHead>
                       <TableHead className="text-right font-bold text-white">
                         Characters
@@ -361,9 +361,9 @@ export default function Leaderboard() {
                           </TableCell>
                           <TableCell className="text-right font-bold text-white">
                             <div className="text-2xl">
-                              {team.teamTotalScore.toFixed(2)}
+                              {(team.teamTotalScore / 10).toFixed(2)}
                             </div>
-                            <div className="text-xs text-gray-400">/1000</div>
+                            <div className="text-xs text-gray-400">/100</div>
                           </TableCell>
                           <TableCell className="text-right text-gray-300">
                             {team.characterCount}/10 ({team.judgeCount} judges)
