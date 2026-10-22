@@ -248,17 +248,17 @@ const Jury: NextPage = () => {
     data.length > 0 &&
     !updating ? (
     <div className="container mb-10 mt-[4.75rem] flex w-full flex-col sm:mt-[5.75rem] md:mt-24 lg:mt-[6.25rem]">
-      <div className="flex flex-row items-center justify-center gap-4">
-        <h1 className="text-center text-5xl">ಸ್ವಾಗತ {sessionData.user.name}</h1>
-        <Button variant="destructive" onClick={() => signOut()}>
-          Sign out
+      <div className="flex flex-col items-center justify-center gap-4 px-4 sm:flex-row">
+        <h1 className="text-center text-3xl sm:text-5xl">ಸ್ವಾಗತ {sessionData.user.name}</h1>
+        <Button variant="destructive" onClick={() => signOut({ callbackUrl: "/login" })}>
+          Log out
         </Button>
       </div>
-      <div className="mt-10 flex flex-row items-center justify-evenly pb-2">
-        <h1 className="text-extrabold flex basis-1/2 justify-start text-4xl">
-          Judge Dashboard - <span className="text-5xl">{teamName}</span>
+      <div className="mt-10 flex flex-col items-start gap-2 px-4 pb-2 sm:flex-row sm:items-center sm:justify-evenly">
+        <h1 className="text-extrabold flex justify-start text-2xl sm:basis-1/2 sm:text-4xl">
+          Judge Dashboard - <span className="text-3xl sm:text-5xl">{teamName}</span>
         </h1>
-        <h1 className="flex basis-1/2 justify-end text-3xl">
+        <h1 className="flex justify-start text-xl sm:basis-1/2 sm:justify-end sm:text-3xl">
           {sessionData?.user.name}
         </h1>
       </div>
@@ -435,14 +435,14 @@ const Jury: NextPage = () => {
       )}
     </div>
   ) : (
-    <div className="container py-40">
-      <div className="h-full w-full space-y-36">
-        <div className="flex flex-row items-center justify-center gap-4">
-          <h1 className="text-center text-5xl">
+    <div className="container px-4 py-20 sm:py-40">
+      <div className="h-full w-full space-y-16 sm:space-y-36">
+        <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
+          <h1 className="text-center text-3xl sm:text-5xl">
             ಸ್ವಾಗತ {sessionData.user.name}
           </h1>
-          <Button variant="destructive" onClick={() => signOut()}>
-            Sign out
+          <Button variant="destructive" onClick={() => signOut({ callbackUrl: "/login" })}>
+            Log out
           </Button>
         </div>
 

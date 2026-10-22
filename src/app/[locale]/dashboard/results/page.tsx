@@ -19,7 +19,7 @@ import { ArrowDown } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { type NextPage } from "next";
 import { Role, type Criterias } from "@prisma/client";
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import Score from "~/components/Jury/score";
 import { Button } from "~/components/ui/button";
@@ -211,12 +211,20 @@ const Jury: NextPage = () => {
     data !== undefined &&
     data.length > 0 ? (
     <div className="max-h-auto container mt-[4.75rem] flex min-h-[130vh] w-full flex-col items-center sm:mt-[5.75rem] md:mt-24 lg:mt-[6.25rem]">
-      <h1 className="text-extrabold mt-4 flex w-full flex-row pb-2 text-3xl">
-        <div className="flex basis-1/2 justify-start text-left text-4xl">
+      <div className="flex w-full justify-end px-4">
+        <Button
+          variant="destructive"
+          onClick={() => void signOut({ callbackUrl: "/login" })}
+        >
+          Log out
+        </Button>
+      </div>
+      <h1 className="text-extrabold mt-4 flex w-full flex-col gap-2 px-4 pb-2 text-3xl sm:flex-row">
+        <div className="flex justify-start text-left text-4xl sm:basis-1/2">
           Results
         </div>
-        <br />
-        <div className="flex basis-1/2 justify-end text-right text-2xl">
+        <br className="hidden sm:block" />
+        <div className="flex justify-start text-left text-2xl sm:basis-1/2 sm:justify-end sm:text-right">
           {active === "result" ? (
             <div>
               <span>

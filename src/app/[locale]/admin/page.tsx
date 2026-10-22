@@ -1,6 +1,6 @@
 "use client";
 
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { api } from "~/trpc/react";
 import Image from "next/image";
 import { Link } from "~/i18n/navigation";
@@ -608,6 +608,13 @@ export default function Admin() {
         >
           {sessionData?.user?.name ?? "Administrator"}
         </span>
+        <button
+          type="button"
+          className="admin-button admin-button--quiet"
+          onClick={() => void signOut({ callbackUrl: "/login" })}
+        >
+          Log out
+        </button>
       </header>
       <Tabs
         value={activeTab}
