@@ -909,6 +909,14 @@ export const adminRouter = createTRPCRouter({
         where: { email: cleanEmail },
       });
 
+      // Roles are exclusive: never turn an admin into a judge
+      if (user?.role === Role.ADMIN)
+        throw new TRPCError({
+          code: "CONFLICT",
+          message:
+            "That account is an admin. Remove its admin access first if it should be a judge.",
+        });
+
       if (user) {
         user = await ctx.db.user.update({
           where: { id: user.id },
@@ -960,9 +968,9 @@ export const adminRouter = createTRPCRouter({
 
       const current = await ctx.db.user.findUnique({
         where: { id: input.userId },
-        select: { password: true },
+        select: { password: true, role: true },
       });
-      if (!current) {
+      if (current?.role !== Role.JUDGE) {
         throw new TRPCError({ code: "NOT_FOUND", message: "Judge not found" });
       }
 
@@ -1011,10 +1019,30 @@ export const adminRouter = createTRPCRouter({
   removeJudge: protectedAdminProcedure
     .input(z.object({ userId: z.string() }))
     .mutation(async ({ ctx, input }) => {
+      const user = await ctx.db.user.findUnique({
+        where: { id: input.userId },
+        select: { role: true },
+      });
+      if (!user)
+        throw new TRPCError({ code: "NOT_FOUND", message: "Judge not found" });
+
+      // Deleting a judge cascades to all of their marks and submissions
+      const [marks, submissions] = await Promise.all([
+        ctx.db.individualScore.count({ where: { judgeId: input.userId } }),
+        ctx.db.submitted.count({ where: { judgeId: input.userId } }),
+      ]);
+      if (marks > 0 || submissions > 0)
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: `This judge has ${marks} mark(s) and ${submissions} submission(s). Removing the judge would delete them, so it is blocked.`,
+        });
+
       await ctx.db.judge.deleteMany({
         where: { userId: input.userId },
       });
 
+      // Only demote real judges; never touch an admin's role
+      if (user.role !== Role.JUDGE) return { id: input.userId };
       return await ctx.db.user.update({
         where: { id: input.userId },
         data: { role: Role.PARTICIPANT },
