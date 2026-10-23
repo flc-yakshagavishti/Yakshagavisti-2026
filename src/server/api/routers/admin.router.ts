@@ -678,7 +678,14 @@ export const adminRouter = createTRPCRouter({
       return ctx.db.character.delete({ where: { id: input.id } });
     }),
   assignPrasanga: protectedAdminProcedure
-    .input(z.object({ teamId: z.string(), prasangaId: z.string() }))
+    .input(
+      z.object({
+        teamId: z.string(),
+        prasangaId: z.string(),
+        // Must be true to wipe players, scores and completion on a team that has them
+        confirmWipe: z.boolean().optional(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const prasanga = await ctx.db.prasanga.findUnique({
         where: { id: input.prasangaId },
@@ -688,6 +695,34 @@ export const adminRouter = createTRPCRouter({
           code: "NOT_FOUND",
           message: "Prasanga not found",
         });
+
+      const [team, playersWithCharacters, scoreCount] = await Promise.all([
+        ctx.db.team.findUnique({
+          where: { id: input.teamId },
+          select: { isComplete: true, prasangaId: true },
+        }),
+        ctx.db.teamMembers.count({
+          where: {
+            teamId: input.teamId,
+            OR: [
+              { characterId: { not: null } },
+              { characterName: { not: null } },
+            ],
+          },
+        }),
+        ctx.db.individualScore.count({ where: { teamID: input.teamId } }),
+      ]);
+      if (!team)
+        throw new TRPCError({ code: "NOT_FOUND", message: "Team not found" });
+
+      const wouldWipe =
+        playersWithCharacters > 0 || scoreCount > 0 || team.isComplete;
+      if (wouldWipe && !input.confirmWipe) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: `This team has ${playersWithCharacters} registered player(s) and ${scoreCount} score(s). Assigning a prasanga deletes them and marks the team incomplete. Confirm to continue.`,
+        });
+      }
       return ctx.db.$transaction(async (tx) => {
         await tx.teamMembers.deleteMany({
           where: {

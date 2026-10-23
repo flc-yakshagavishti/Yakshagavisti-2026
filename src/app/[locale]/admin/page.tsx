@@ -921,16 +921,17 @@ export default function Admin() {
                     setNewTeamName(team.name);
                   }}
                   onAssignPrasanga={(prasangaId) => {
-                    if (
-                      !prasangaId ||
-                      prasangaId === team.Prasanga?.id ||
-                      !confirm(
-                        "Changing the prasanga will reset this team's character details, verification, attendance, and scores. Continue?",
-                      )
-                    )
-                      return;
+                    if (!prasangaId || prasangaId === team.Prasanga?.id) return;
+                    const playerCount = team.TeamMembers.filter(
+                      (member) => member.characterId ?? member.characterName,
+                    ).length;
+                    const warning =
+                      playerCount > 0
+                        ? `This will DELETE ${playerCount} registered player(s) of this team, plus its scores and submissions, and mark the team incomplete. The players will have to be registered again. Continue?`
+                        : "Assign this prasanga to the team?";
+                    if (!confirm(warning)) return;
                     assignPrasangaMutation.mutate(
-                      { teamId: team.id, prasangaId },
+                      { teamId: team.id, prasangaId, confirmWipe: true },
                       {
                         onSuccess: () => {
                           void refetchTeams();
