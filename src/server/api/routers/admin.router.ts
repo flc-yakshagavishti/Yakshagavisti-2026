@@ -715,12 +715,11 @@ export const adminRouter = createTRPCRouter({
       if (!team)
         throw new TRPCError({ code: "NOT_FOUND", message: "Team not found" });
 
-      const wouldWipe =
-        playersWithCharacters > 0 || scoreCount > 0 || team.isComplete;
-      if (wouldWipe && !input.confirmWipe) {
+      // Judges' marks cannot be re-entered by an admin, so only they need a confirmation
+      if (scoreCount > 0 && !input.confirmWipe) {
         throw new TRPCError({
           code: "CONFLICT",
-          message: `This team has ${playersWithCharacters} player(s) with characters and ${scoreCount} score(s). Assigning a prasanga clears the players' characters, verification and attendance, deletes the scores and marks the team incomplete. Confirm to continue.`,
+          message: `Judges have already entered ${scoreCount} mark(s) for this team. Assigning a prasanga will delete those marks and clear ${playersWithCharacters} player(s)' characters, verification and attendance. Delete the marks and continue?`,
         });
       }
       return ctx.db.$transaction(async (tx) => {

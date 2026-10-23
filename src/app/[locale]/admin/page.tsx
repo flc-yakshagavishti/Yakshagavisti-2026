@@ -922,22 +922,31 @@ export default function Admin() {
                   }}
                   onAssignPrasanga={(prasangaId) => {
                     if (!prasangaId || prasangaId === team.Prasanga?.id) return;
-                    const playerCount = team.TeamMembers.filter(
-                      (member) => member.characterId ?? member.characterName,
-                    ).length;
-                    const warning =
-                      playerCount > 0
-                        ? `This will clear the characters, ID verification and attendance of ${playerCount} player(s), delete the team's scores and submissions, and mark the team incomplete. The players themselves are kept. Continue?`
-                        : "Assign this prasanga to the team?";
-                    if (!confirm(warning)) return;
+                    const onDone = () => {
+                      void refetchTeams();
+                      void refetchPrasangas();
+                    };
+                    // Assigns straight away; the server asks only if judges have entered marks
                     assignPrasangaMutation.mutate(
-                      { teamId: team.id, prasangaId, confirmWipe: true },
+                      { teamId: team.id, prasangaId },
                       {
-                        onSuccess: () => {
-                          void refetchTeams();
-                          void refetchPrasangas();
+                        onSuccess: onDone,
+                        onError: (error) => {
+                          if (
+                            error.data?.code === "CONFLICT" &&
+                            confirm(error.message)
+                          ) {
+                            assignPrasangaMutation.mutate(
+                              { teamId: team.id, prasangaId, confirmWipe: true },
+                              {
+                                onSuccess: onDone,
+                                onError: (err) => alert(err.message),
+                              },
+                            );
+                          } else if (error.data?.code !== "CONFLICT") {
+                            alert(error.message);
+                          }
                         },
-                        onError: (error) => alert(error.message),
                       },
                     );
                   }}
