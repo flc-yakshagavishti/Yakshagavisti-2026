@@ -927,7 +927,7 @@ export default function Admin() {
                     ).length;
                     const warning =
                       playerCount > 0
-                        ? `This will DELETE ${playerCount} registered player(s) of this team, plus its scores and submissions, and mark the team incomplete. The players will have to be registered again. Continue?`
+                        ? `This will clear the characters, ID verification and attendance of ${playerCount} player(s), delete the team's scores and submissions, and mark the team incomplete. The players themselves are kept. Continue?`
                         : "Assign this prasanga to the team?";
                     if (!confirm(warning)) return;
                     assignPrasangaMutation.mutate(

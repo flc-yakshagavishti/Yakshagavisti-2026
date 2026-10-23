@@ -720,17 +720,24 @@ export const adminRouter = createTRPCRouter({
       if (wouldWipe && !input.confirmWipe) {
         throw new TRPCError({
           code: "CONFLICT",
-          message: `This team has ${playersWithCharacters} registered player(s) and ${scoreCount} score(s). Assigning a prasanga deletes them and marks the team incomplete. Confirm to continue.`,
+          message: `This team has ${playersWithCharacters} player(s) with characters and ${scoreCount} score(s). Assigning a prasanga clears the players' characters, verification and attendance, deletes the scores and marks the team incomplete. Confirm to continue.`,
         });
       }
       return ctx.db.$transaction(async (tx) => {
-        await tx.teamMembers.deleteMany({
+        // Keep the players; only clear what depends on the old prasanga
+        await tx.teamMembers.updateMany({
           where: {
             teamId: input.teamId,
             OR: [
               { characterId: { not: null } },
               { characterName: { not: null } },
             ],
+          },
+          data: {
+            characterId: null,
+            characterName: null,
+            isIdVerified: false,
+            isAttended: false,
           },
         });
         await tx.individualScore.deleteMany({
