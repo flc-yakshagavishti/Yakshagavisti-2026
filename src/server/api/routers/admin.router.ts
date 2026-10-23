@@ -389,13 +389,25 @@ export const adminRouter = createTRPCRouter({
         },
       });
 
+      // Only marks a judge has submitted for a team count towards the ranking
+      const submittedRows = await ctx.db.submitted.findMany({
+        where: { submitted: true },
+        select: { judgeId: true, teamID: true },
+      });
+      const submittedKeys = new Set(
+        submittedRows.map((row) => `${row.judgeId}:${row.teamID}`),
+      );
+
       // Each team has ten playable characters, each with five criteria worth 20.
       // The team lead is stored separately and is not included in these scores.
       const leaderboard = teams.map((team) => {
+        const submittedScores = team.IndividualScore.filter((score) =>
+          submittedKeys.has(`${score.judgeId}:${team.id}`),
+        );
         // Group scores by judge - each judge scores the team out of 1000.
         const judgeScores = new Map<string, number>();
 
-        team.IndividualScore.forEach((score) => {
+        submittedScores.forEach((score) => {
           const judgeId = score.judgeId;
           const currentTotal = judgeScores.get(judgeId) ?? 0;
           judgeScores.set(judgeId, currentTotal + score.score);
@@ -411,7 +423,7 @@ export const adminRouter = createTRPCRouter({
 
         // Count unique characters
         const uniqueCharacters = new Set(
-          team.IndividualScore.map((s) => s.characterId),
+          submittedScores.map((s) => s.characterId),
         ).size;
 
         return {
@@ -477,6 +489,15 @@ export const adminRouter = createTRPCRouter({
         },
       });
 
+      // Only marks a judge has submitted for a team count towards the ranking
+      const submittedRows = await ctx.db.submitted.findMany({
+        where: { submitted: true },
+        select: { judgeId: true, teamID: true },
+      });
+      const submittedKeys = new Set(
+        submittedRows.map((row) => `${row.judgeId}:${row.teamID}`),
+      );
+
       // Group by team and character with judge and criteria breakdown
       const characterMap = new Map<
         string,
@@ -493,6 +514,7 @@ export const adminRouter = createTRPCRouter({
       >();
 
       scores.forEach((score) => {
+        if (!submittedKeys.has(`${score.judgeId}:${score.team.id}`)) return;
         const key = `${score.team.id}-${score.characterPlayed.id}`;
         if (!characterMap.has(key)) {
           characterMap.set(key, {
@@ -1027,14 +1049,15 @@ export const adminRouter = createTRPCRouter({
         throw new TRPCError({ code: "NOT_FOUND", message: "Judge not found" });
 
       // Deleting a judge cascades to all of their marks and submissions
-      const [marks, submissions] = await Promise.all([
+      const [marks, submissions, remarks] = await Promise.all([
         ctx.db.individualScore.count({ where: { judgeId: input.userId } }),
         ctx.db.submitted.count({ where: { judgeId: input.userId } }),
+        ctx.db.judgeRemark.count({ where: { judgeId: input.userId } }),
       ]);
-      if (marks > 0 || submissions > 0)
+      if (marks > 0 || submissions > 0 || remarks > 0)
         throw new TRPCError({
           code: "CONFLICT",
-          message: `This judge has ${marks} mark(s) and ${submissions} submission(s). Removing the judge would delete them, so it is blocked.`,
+          message: `This judge has ${marks} mark(s), ${submissions} submission(s) and ${remarks} remark(s). Removing the judge would delete them, so it is blocked.`,
         });
 
       await ctx.db.judge.deleteMany({

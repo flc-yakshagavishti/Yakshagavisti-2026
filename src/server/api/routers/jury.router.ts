@@ -39,9 +39,20 @@ export const JuryRouter = createTRPCRouter({
   addRemark: protectedJudgeProcedure
     .input(z.object({ teamId: z.string(), remark: z.string() }))
     .mutation(async ({ ctx, input }) =>
-      ctx.db.team.update({
-        where: { id: input.teamId },
-        data: { remark: input.remark },
+      // Each judge keeps their own remark for a team
+      ctx.db.judgeRemark.upsert({
+        where: {
+          judgeId_teamId: {
+            judgeId: ctx.session.user.id,
+            teamId: input.teamId,
+          },
+        },
+        create: {
+          judgeId: ctx.session.user.id,
+          teamId: input.teamId,
+          remark: input.remark,
+        },
+        update: { remark: input.remark },
       }),
     ),
   getScores: protectedJudgeProcedure
@@ -148,8 +159,13 @@ export const JuryRouter = createTRPCRouter({
   getRemark: protectedJudgeProcedure
     .input(z.object({ teamId: z.string() }))
     .query(async ({ ctx, input }) =>
-      ctx.db.team.findUnique({
-        where: { id: input.teamId },
+      ctx.db.judgeRemark.findUnique({
+        where: {
+          judgeId_teamId: {
+            judgeId: ctx.session.user.id,
+            teamId: input.teamId,
+          },
+        },
         select: { remark: true },
       }),
     ),

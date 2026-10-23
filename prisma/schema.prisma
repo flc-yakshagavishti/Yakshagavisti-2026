@@ -100,6 +100,7 @@ model Team {
   TeamMembers     TeamMembers[]
   IndividualScore IndividualScore[]
   Submitted       Submitted[]
+  JudgeRemark     JudgeRemark[]
 
   @@index([college_id])
   @@index([prasangaId])
@@ -139,8 +140,23 @@ model Judge {
   User            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   IndividualScore IndividualScore[]
   Submitted       Submitted[]
+  JudgeRemark     JudgeRemark[]
 
   @@unique([userId])
+}
+
+model JudgeRemark {
+  id        String   @id @default(cuid())
+  judgeId   String
+  Judge     Judge    @relation(fields: [judgeId], references: [userId], onDelete: Cascade)
+  teamId    String
+  Team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  remark    String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([judgeId, teamId])
+  @@index([teamId])
 }
 
 model Submitted {
