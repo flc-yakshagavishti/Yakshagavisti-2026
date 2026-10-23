@@ -678,14 +678,7 @@ export const adminRouter = createTRPCRouter({
       return ctx.db.character.delete({ where: { id: input.id } });
     }),
   assignPrasanga: protectedAdminProcedure
-    .input(
-      z.object({
-        teamId: z.string(),
-        prasangaId: z.string(),
-        // Must be true to wipe players, scores and completion on a team that has them
-        confirmWipe: z.boolean().optional(),
-      }),
-    )
+    .input(z.object({ teamId: z.string(), prasangaId: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const prasanga = await ctx.db.prasanga.findUnique({
         where: { id: input.prasangaId },
@@ -696,62 +689,11 @@ export const adminRouter = createTRPCRouter({
           message: "Prasanga not found",
         });
 
-      const [team, playersWithCharacters, scoreCount] = await Promise.all([
-        ctx.db.team.findUnique({
-          where: { id: input.teamId },
-          select: { isComplete: true, prasangaId: true },
-        }),
-        ctx.db.teamMembers.count({
-          where: {
-            teamId: input.teamId,
-            OR: [
-              { characterId: { not: null } },
-              { characterName: { not: null } },
-            ],
-          },
-        }),
-        ctx.db.individualScore.count({ where: { teamID: input.teamId } }),
-      ]);
-      if (!team)
-        throw new TRPCError({ code: "NOT_FOUND", message: "Team not found" });
-
-      // Judges' marks cannot be re-entered by an admin, so only they need a confirmation
-      if (scoreCount > 0 && !input.confirmWipe) {
-        throw new TRPCError({
-          code: "CONFLICT",
-          message: `Judges have already entered ${scoreCount} mark(s) for this team. Assigning a prasanga will delete those marks and clear ${playersWithCharacters} player(s)' characters, verification and attendance. Delete the marks and continue?`,
-        });
-      }
-      return ctx.db.$transaction(async (tx) => {
-        // Keep the players; only clear what depends on the old prasanga
-        await tx.teamMembers.updateMany({
-          where: {
-            teamId: input.teamId,
-            OR: [
-              { characterId: { not: null } },
-              { characterName: { not: null } },
-            ],
-          },
-          data: {
-            characterId: null,
-            characterName: null,
-            isIdVerified: false,
-            isAttended: false,
-          },
-        });
-        await tx.individualScore.deleteMany({
-          where: { teamID: input.teamId },
-        });
-        await tx.submitted.deleteMany({ where: { teamID: input.teamId } });
-        return tx.team.update({
-          where: { id: input.teamId },
-          data: {
-            prasangaId: input.prasangaId,
-            isComplete: false,
-            attended: false,
-            editRequested: false,
-          },
-        });
+      // Only changes which prasanga the team has. Players, characters,
+      // verification, attendance, marks and submissions are left untouched.
+      return ctx.db.team.update({
+        where: { id: input.teamId },
+        data: { prasangaId: input.prasangaId },
       });
     }),
 

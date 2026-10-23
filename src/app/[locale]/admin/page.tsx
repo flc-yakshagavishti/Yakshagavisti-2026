@@ -922,31 +922,14 @@ export default function Admin() {
                   }}
                   onAssignPrasanga={(prasangaId) => {
                     if (!prasangaId || prasangaId === team.Prasanga?.id) return;
-                    const onDone = () => {
-                      void refetchTeams();
-                      void refetchPrasangas();
-                    };
-                    // Assigns straight away; the server asks only if judges have entered marks
                     assignPrasangaMutation.mutate(
                       { teamId: team.id, prasangaId },
                       {
-                        onSuccess: onDone,
-                        onError: (error) => {
-                          if (
-                            error.data?.code === "CONFLICT" &&
-                            confirm(error.message)
-                          ) {
-                            assignPrasangaMutation.mutate(
-                              { teamId: team.id, prasangaId, confirmWipe: true },
-                              {
-                                onSuccess: onDone,
-                                onError: (err) => alert(err.message),
-                              },
-                            );
-                          } else if (error.data?.code !== "CONFLICT") {
-                            alert(error.message);
-                          }
+                        onSuccess: () => {
+                          void refetchTeams();
+                          void refetchPrasangas();
                         },
+                        onError: (error) => alert(error.message),
                       },
                     );
                   }}
