@@ -448,15 +448,7 @@ export const adminRouter = createTRPCRouter({
   }),
 
   getParticipantLeaderboard: protectedAdminProcedure.query(async ({ ctx }) => {
-    // Only marks a judge has submitted for a team count towards the ranking
-    const submittedRows = await ctx.db.submitted.findMany({
-      where: { submitted: true },
-      select: { judgeId: true, teamID: true },
-    });
-    const submittedKeys = new Set(
-      submittedRows.map((row) => `${row.judgeId}:${row.teamID}`),
-    );
-
+    // Averages every mark judges have entered, submitted or not
     const [scores, teams] = await Promise.all([
       ctx.db.individualScore.findMany({
         select: {
@@ -493,7 +485,6 @@ export const adminRouter = createTRPCRouter({
       { teamId: string; characterId: string; character: string; judgeTotals: Map<string, number> }
     >();
     for (const score of scores) {
-      if (!submittedKeys.has(`${score.judgeId}:${score.teamID}`)) continue;
       const key = `${score.teamID}:${score.characterId}`;
       let group = groups.get(key);
       if (!group) {
