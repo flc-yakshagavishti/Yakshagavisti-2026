@@ -54,6 +54,7 @@ export default function Leaderboard() {
   const [activeTab, setActiveTab] = useState<
     "team" | "character" | "participant"
   >("team");
+  const [participantTeam, setParticipantTeam] = useState<string>("all");
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [selectedCharacter, setSelectedCharacter] = useState<string>();
 
@@ -666,75 +667,112 @@ export default function Leaderboard() {
         </TabsContent>
 
         <TabsContent value="participant">
-          <div className="overflow-hidden rounded-lg border border-gray-800 bg-gray-900/50 backdrop-blur-sm">
-            {participantLoading ? (
-              <div className="flex h-64 items-center justify-center">
-                <ImSpinner9 className="animate-spin text-4xl text-white" />
+          {participantLoading ? (
+            <div className="flex h-64 items-center justify-center rounded-lg border border-gray-800 bg-gray-900/50">
+              <ImSpinner9 className="animate-spin text-4xl text-white" />
+            </div>
+          ) : !participantLeaderboard?.length ? (
+            <div className="rounded-lg border border-gray-800 bg-gray-900/50 p-10 text-center text-gray-400">
+              No teams yet.
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {/* Quick team picker */}
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <label
+                  htmlFor="participant-team"
+                  className="text-sm font-semibold text-gray-300"
+                >
+                  Team
+                </label>
+                <select
+                  id="participant-team"
+                  value={participantTeam}
+                  onChange={(e) => setParticipantTeam(e.target.value)}
+                  className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500 sm:w-80"
+                >
+                  <option value="all">All teams</option>
+                  {participantLeaderboard.map((team) => (
+                    <option key={team.teamId} value={team.teamId}>
+                      {team.teamName.trim()} ({team.collegeName})
+                    </option>
+                  ))}
+                </select>
               </div>
-            ) : !participantLeaderboard?.length ? (
-              <div className="p-10 text-center text-gray-400">
-                No submitted marks yet.
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="border-gray-800 hover:bg-gray-800/50">
-                      <TableHead className="font-bold text-white">Rank</TableHead>
-                      <TableHead className="font-bold text-white">Participant</TableHead>
-                      <TableHead className="font-bold text-white">Character</TableHead>
-                      <TableHead className="font-bold text-white">Team</TableHead>
-                      <TableHead className="font-bold text-white">College</TableHead>
-                      <TableHead className="text-right font-bold text-white">
-                        Average (/100)
-                      </TableHead>
-                      <TableHead className="text-right font-bold text-white">
-                        Judges
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {participantLeaderboard.map((entry, index) => (
-                      <TableRow
-                        key={entry.key}
-                        className={`border-gray-800 hover:bg-gray-800/50 ${
-                          index === 0
-                            ? "bg-yellow-500/10"
-                            : index === 1
-                              ? "bg-gray-400/10"
-                              : index === 2
-                                ? "bg-orange-600/10"
-                                : ""
-                        }`}
-                      >
-                        <TableCell className="font-bold text-white">
-                          {index + 1}
-                        </TableCell>
-                        <TableCell className="font-semibold text-white">
-                          {entry.participantName}
-                        </TableCell>
-                        <TableCell className="text-gray-300">
-                          {entry.character}
-                        </TableCell>
-                        <TableCell className="text-gray-300">
-                          {entry.teamName}
-                        </TableCell>
-                        <TableCell className="text-gray-400">
-                          {entry.collegeName}
-                        </TableCell>
-                        <TableCell className="text-right text-lg font-bold text-yellow-500">
-                          {entry.averageScore}
-                        </TableCell>
-                        <TableCell className="text-right text-gray-400">
-                          {entry.judgeCount}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </div>
+
+              {participantLeaderboard
+                .filter(
+                  (team) =>
+                    participantTeam === "all" || team.teamId === participantTeam,
+                )
+                .map((team) => (
+                  <div
+                    key={team.teamId}
+                    className="overflow-hidden rounded-lg border border-gray-800 bg-gray-900/50 backdrop-blur-sm"
+                  >
+                    <div className="flex flex-col gap-1 border-b border-gray-800 px-4 py-3 sm:flex-row sm:items-baseline sm:justify-between">
+                      <h3 className="text-xl font-bold text-yellow-500">
+                        {team.teamName.trim()}
+                      </h3>
+                      <span className="text-sm text-gray-400">
+                        {team.collegeName} · {team.participants.length} participant(s)
+                      </span>
+                    </div>
+                    {team.participants.length === 0 ? (
+                      <div className="p-6 text-center text-gray-400">
+                        No participants registered.
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow className="border-gray-800 hover:bg-gray-800/50">
+                              <TableHead className="font-bold text-white">#</TableHead>
+                              <TableHead className="font-bold text-white">
+                                Participant
+                              </TableHead>
+                              <TableHead className="font-bold text-white">
+                                Character
+                              </TableHead>
+                              <TableHead className="text-right font-bold text-white">
+                                Average (/100)
+                              </TableHead>
+                              <TableHead className="text-right font-bold text-white">
+                                Judges
+                              </TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {team.participants.map((p, index) => (
+                              <TableRow
+                                key={p.id}
+                                className="border-gray-800 hover:bg-gray-800/50"
+                              >
+                                <TableCell className="font-bold text-white">
+                                  {index + 1}
+                                </TableCell>
+                                <TableCell className="font-semibold text-white">
+                                  {p.name}
+                                </TableCell>
+                                <TableCell className="text-gray-300">
+                                  {p.character ?? "Leader"}
+                                </TableCell>
+                                <TableCell className="text-right text-lg font-bold text-yellow-500">
+                                  {p.averageScore ?? "—"}
+                                </TableCell>
+                                <TableCell className="text-right text-gray-400">
+                                  {p.judgeCount}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    )}
+                  </div>
+                ))}
+            </div>
+          )}
         </TabsContent>
       </Tabs>
     </div>

@@ -471,14 +471,21 @@ export const adminRouter = createTRPCRouter({
         select: {
           id: true,
           name: true,
+          number: true,
           College: { select: { name: true } },
           TeamMembers: {
-            select: { name: true, characterId: true, characterName: true },
+            select: {
+              id: true,
+              name: true,
+              characterId: true,
+              characterName: true,
+              Character: { select: { character: true } },
+            },
           },
         },
+        orderBy: { number: "asc" },
       }),
     ]);
-    const teamById = new Map(teams.map((team) => [team.id, team]));
 
     // teamId:characterId -> judgeId -> total of that judge's criteria (out of 100)
     const groups = new Map<
@@ -504,28 +511,48 @@ export const adminRouter = createTRPCRouter({
       );
     }
 
-    const leaderboard = Array.from(groups.values()).map((group) => {
-      const team = teamById.get(group.teamId);
-      const characterName = group.character.trim().toLowerCase();
-      const member = team?.TeamMembers.find(
-        (m) =>
-          m.characterId === group.characterId ||
-          m.characterName?.trim().toLowerCase() === characterName,
+    // Every member of every team, with their average if judges have submitted marks
+    return teams.map((team) => {
+      const teamGroups = Array.from(groups.values()).filter(
+        (group) => group.teamId === team.id,
       );
-      const totals = Array.from(group.judgeTotals.values());
-      const average = totals.reduce((sum, total) => sum + total, 0) / totals.length;
+      const participants = team.TeamMembers.map((member) => {
+        const characterLabel =
+          member.characterName?.trim() ?? member.Character?.character ?? "";
+        const group = teamGroups.find((g) => {
+          if (member.characterId !== null && g.characterId === member.characterId)
+            return true;
+          return (
+            characterLabel !== "" &&
+            g.character.trim().toLowerCase() === characterLabel.toLowerCase()
+          );
+        });
+        const totals = group ? Array.from(group.judgeTotals.values()) : [];
+        const average = totals.length
+          ? totals.reduce((sum, total) => sum + total, 0) / totals.length
+          : null;
+        return {
+          id: member.id,
+          name: member.name,
+          character: characterLabel === "" ? null : characterLabel,
+          averageScore: average === null ? null : Math.round(average * 100) / 100, // Out of 100
+          judgeCount: totals.length,
+        };
+      }).sort((a, b) => {
+        // Scored first (highest average first), then unscored members
+        if (a.averageScore === null && b.averageScore === null) return 0;
+        if (a.averageScore === null) return 1;
+        if (b.averageScore === null) return -1;
+        return b.averageScore - a.averageScore;
+      });
+
       return {
-        key: `${group.teamId}:${group.characterId}`,
-        participantName: member?.name ?? "Unknown",
-        character: group.character,
-        teamName: team?.name ?? "Unknown",
-        collegeName: team?.College?.name ?? "Unknown",
-        averageScore: Math.round(average * 100) / 100, // Out of 100
-        judgeCount: totals.length,
+        teamId: team.id,
+        teamName: team.name,
+        collegeName: team.College?.name ?? "Unknown",
+        participants,
       };
     });
-
-    return leaderboard.sort((a, b) => b.averageScore - a.averageScore);
   }),
 
   getCharacterLeaderboard: protectedAdminProcedure.query(async ({ ctx }) => {
