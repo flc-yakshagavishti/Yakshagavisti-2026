@@ -46,7 +46,14 @@ export default function Leaderboard() {
       enabled: !isAdmin,
     });
 
-  const [activeTab, setActiveTab] = useState<"team" | "character">("team");
+  const { data: participantLeaderboard, isLoading: participantLoading } =
+    api.admin.getParticipantLeaderboard.useQuery(undefined, {
+      enabled: !isAdmin,
+    });
+
+  const [activeTab, setActiveTab] = useState<
+    "team" | "character" | "participant"
+  >("team");
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [selectedCharacter, setSelectedCharacter] = useState<string>();
 
@@ -283,15 +290,20 @@ export default function Leaderboard() {
 
       <Tabs
         value={activeTab}
-        onValueChange={(value) => setActiveTab(value as "team" | "character")}
+        onValueChange={(value) =>
+          setActiveTab(value as "team" | "character" | "participant")
+        }
         className="w-full"
       >
-        <TabsList className="mx-auto mb-8 grid w-full max-w-md grid-cols-2">
+        <TabsList className="mx-auto mb-8 grid h-auto w-full max-w-2xl grid-cols-1 gap-1 sm:grid-cols-3">
           <TabsTrigger value="team" className="text-lg">
             Team Leaderboard
           </TabsTrigger>
           <TabsTrigger value="character" className="text-lg">
             Character Leaderboard
+          </TabsTrigger>
+          <TabsTrigger value="participant" className="text-lg">
+            Participants
           </TabsTrigger>
         </TabsList>
 
@@ -649,6 +661,78 @@ export default function Leaderboard() {
                   </Table>
                 </div>
               </>
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="participant">
+          <div className="overflow-hidden rounded-lg border border-gray-800 bg-gray-900/50 backdrop-blur-sm">
+            {participantLoading ? (
+              <div className="flex h-64 items-center justify-center">
+                <ImSpinner9 className="animate-spin text-4xl text-white" />
+              </div>
+            ) : !participantLeaderboard?.length ? (
+              <div className="p-10 text-center text-gray-400">
+                No submitted marks yet.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-gray-800 hover:bg-gray-800/50">
+                      <TableHead className="font-bold text-white">Rank</TableHead>
+                      <TableHead className="font-bold text-white">Participant</TableHead>
+                      <TableHead className="font-bold text-white">Character</TableHead>
+                      <TableHead className="font-bold text-white">Team</TableHead>
+                      <TableHead className="font-bold text-white">College</TableHead>
+                      <TableHead className="text-right font-bold text-white">
+                        Average (/100)
+                      </TableHead>
+                      <TableHead className="text-right font-bold text-white">
+                        Judges
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {participantLeaderboard.map((entry, index) => (
+                      <TableRow
+                        key={entry.key}
+                        className={`border-gray-800 hover:bg-gray-800/50 ${
+                          index === 0
+                            ? "bg-yellow-500/10"
+                            : index === 1
+                              ? "bg-gray-400/10"
+                              : index === 2
+                                ? "bg-orange-600/10"
+                                : ""
+                        }`}
+                      >
+                        <TableCell className="font-bold text-white">
+                          {index + 1}
+                        </TableCell>
+                        <TableCell className="font-semibold text-white">
+                          {entry.participantName}
+                        </TableCell>
+                        <TableCell className="text-gray-300">
+                          {entry.character}
+                        </TableCell>
+                        <TableCell className="text-gray-300">
+                          {entry.teamName}
+                        </TableCell>
+                        <TableCell className="text-gray-400">
+                          {entry.collegeName}
+                        </TableCell>
+                        <TableCell className="text-right text-lg font-bold text-yellow-500">
+                          {entry.averageScore}
+                        </TableCell>
+                        <TableCell className="text-right text-gray-400">
+                          {entry.judgeCount}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             )}
           </div>
         </TabsContent>

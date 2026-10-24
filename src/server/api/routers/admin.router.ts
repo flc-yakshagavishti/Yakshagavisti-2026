@@ -447,6 +447,87 @@ export const adminRouter = createTRPCRouter({
     }
   }),
 
+  getParticipantLeaderboard: protectedAdminProcedure.query(async ({ ctx }) => {
+    // Only marks a judge has submitted for a team count towards the ranking
+    const submittedRows = await ctx.db.submitted.findMany({
+      where: { submitted: true },
+      select: { judgeId: true, teamID: true },
+    });
+    const submittedKeys = new Set(
+      submittedRows.map((row) => `${row.judgeId}:${row.teamID}`),
+    );
+
+    const [scores, teams] = await Promise.all([
+      ctx.db.individualScore.findMany({
+        select: {
+          judgeId: true,
+          teamID: true,
+          characterId: true,
+          score: true,
+          characterPlayed: { select: { character: true } },
+        },
+      }),
+      ctx.db.team.findMany({
+        select: {
+          id: true,
+          name: true,
+          College: { select: { name: true } },
+          TeamMembers: {
+            select: { name: true, characterId: true, characterName: true },
+          },
+        },
+      }),
+    ]);
+    const teamById = new Map(teams.map((team) => [team.id, team]));
+
+    // teamId:characterId -> judgeId -> total of that judge's criteria (out of 100)
+    const groups = new Map<
+      string,
+      { teamId: string; characterId: string; character: string; judgeTotals: Map<string, number> }
+    >();
+    for (const score of scores) {
+      if (!submittedKeys.has(`${score.judgeId}:${score.teamID}`)) continue;
+      const key = `${score.teamID}:${score.characterId}`;
+      let group = groups.get(key);
+      if (!group) {
+        group = {
+          teamId: score.teamID,
+          characterId: score.characterId,
+          character: score.characterPlayed.character,
+          judgeTotals: new Map(),
+        };
+        groups.set(key, group);
+      }
+      group.judgeTotals.set(
+        score.judgeId,
+        (group.judgeTotals.get(score.judgeId) ?? 0) + score.score,
+      );
+    }
+
+    const leaderboard = Array.from(groups.values()).map((group) => {
+      const team = teamById.get(group.teamId);
+      const characterName = group.character.trim().toLowerCase();
+      const member = team?.TeamMembers.find(
+        (m) =>
+          m.characterId === group.characterId ||
+          m.characterName?.trim().toLowerCase() === characterName,
+      );
+      const totals = Array.from(group.judgeTotals.values());
+      const average = totals.reduce((sum, total) => sum + total, 0) / totals.length;
+      return {
+        key: `${group.teamId}:${group.characterId}`,
+        participantName: member?.name ?? "Unknown",
+        character: group.character,
+        teamName: team?.name ?? "Unknown",
+        collegeName: team?.College?.name ?? "Unknown",
+        averageScore: Math.round(average * 100) / 100, // Out of 100
+        judgeCount: totals.length,
+      };
+    });
+
+    return leaderboard.sort((a, b) => b.averageScore - a.averageScore);
+  }),
+
   getCharacterLeaderboard: protectedAdminProcedure.query(async ({ ctx }) => {
     try {
       // Get all individual scores with criteria breakdown
